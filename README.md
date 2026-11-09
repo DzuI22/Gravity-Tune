@@ -48,3 +48,13 @@ Buka browser Anda di:
 - **Icons & Motion:** Lucide React + Framer Motion
 - **Music API:** `youtubei.js` (YouTube Music InnerTube Engine)
 - **Lyrics API:** LRCLIB (Real-time synchronized lyrics)
+
+---
+
+title: Gravity Tune
+emoji: 🎵
+colorFrom: indigo
+colorTo: pink
+sdk: statis
+app_port: 8000
+---
