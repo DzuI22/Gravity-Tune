@@ -18,6 +18,13 @@ interface PlayerContextType {
   isFullPlayerOpen: boolean;
   isLyricsOpen: boolean;
   ambientColor: string;
+  isShuffle: boolean;
+  toggleShuffle: () => void;
+  repeatMode: 'off' | 'all' | 'one';
+  toggleRepeat: () => void;
+  sleepTimer: number | null;
+  sleepTimerRemaining: number | null;
+  setSleepTimer: (minutes: number | null) => void;
   playSong: (song: Song, newQueue?: Song[]) => void;
   togglePlay: () => void;
   seek: (seconds: number) => void;
@@ -49,39 +56,31 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [ambientColor, setAmbientColor] = useState('#1e1b4b');
 
+  // Modern Playback Modes
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
+  const [sleepTimer, setSleepTimerState] = useState<number | null>(null);
+  const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
+
   const ytPlayerRef = useRef<any>(null);
   const isYtReadyRef = useRef<boolean>(false);
   const pendingSongRef = useRef<Song | null>(null);
   const wakeLockRef = useRef<any>(null);
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Background Audio Keep-Alive for Mobile: Plays a silent HTML5 audio loop to keep Android Audio Channel open
-  const initSilentKeepAlive = () => {
-    if (typeof window === 'undefined') return;
-    if (!silentAudioRef.current) {
-      try {
-        const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-        const audio = new Audio(silentWav);
-        audio.loop = true;
-        audio.volume = 0.001;
-        silentAudioRef.current = audio;
-      } catch (_) {}
-    }
-    silentAudioRef.current?.play().catch(() => {});
-  };
-
-  const pauseSilentKeepAlive = () => {
-    silentAudioRef.current?.pause();
-  };
+  const audioCtxRef = useRef<any>(null);
 
   // Avoid stale closures in background callbacks and MediaSession
   const currentSongRef = useRef<Song | null>(null);
   const queueRef = useRef<Song[]>([]);
   const isPlayingRef = useRef<boolean>(false);
+  const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
+  const isShuffleRef = useRef<boolean>(false);
 
   useEffect(() => { currentSongRef.current = currentSong; }, [currentSong]);
   useEffect(() => { queueRef.current = queue; }, [queue]);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { repeatModeRef.current = repeatMode; }, [repeatMode]);
+  useEffect(() => { isShuffleRef.current = isShuffle; }, [isShuffle]);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -94,6 +93,87 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       console.error('Failed to load favorites', e);
     }
   }, []);
+
+  // Sleep Timer Countdown Ticker
+  useEffect(() => {
+    if (!sleepTimerRemaining || sleepTimerRemaining <= 0) return;
+
+    const interval = setInterval(() => {
+      setSleepTimerRemaining(prev => {
+        if (!prev || prev <= 1) {
+          clearInterval(interval);
+          ytPlayerRef.current?.pauseVideo();
+          setIsPlaying(false);
+          setSleepTimerState(null);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sleepTimerRemaining]);
+
+  const setSleepTimer = (minutes: number | null) => {
+    setSleepTimerState(minutes);
+    if (minutes && minutes > 0) {
+      setSleepTimerRemaining(minutes * 60);
+    } else {
+      setSleepTimerRemaining(null);
+    }
+  };
+
+  const toggleShuffle = () => {
+    setIsShuffle(prev => !prev);
+  };
+
+  const toggleRepeat = () => {
+    setRepeatMode(prev => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  };
+
+  // Background Audio Keep-Alive for Mobile: Generates inaudible audio to keep Chrome/Android Audio Session alive
+  const initSilentKeepAlive = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!silentAudioRef.current) {
+        const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        const audio = new Audio(silentWav);
+        audio.loop = true;
+        audio.volume = 0.001;
+        silentAudioRef.current = audio;
+      }
+      silentAudioRef.current?.play().catch(() => {});
+
+      // Also trigger WebAudio oscillator keep-alive
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioCtxRef.current && AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(20, ctx.currentTime);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        audioCtxRef.current = ctx;
+      }
+      if (audioCtxRef.current?.state === 'suspended') {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+    } catch (_) {}
+  };
+
+  const pauseSilentKeepAlive = () => {
+    silentAudioRef.current?.pause();
+    if (audioCtxRef.current?.state === 'running') {
+      audioCtxRef.current.suspend().catch(() => {});
+    }
+  };
 
   // Acquire WakeLock when playing
   const requestWakeLock = async () => {
@@ -113,7 +193,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 1. Initialize Client-Side Native YouTube Player (100% Works on Vercel without datacenter IP blocks)
+  // 1. Initialize Client-Side Native YouTube Player
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -147,7 +227,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               }
             },
             onStateChange: (event: any) => {
-              // -1 = unstarted, 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = cued
               const state = event.data;
               if (state === 1) { // PLAYING
                 setIsPlaying(true);
@@ -170,7 +249,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               } else if (state === 0) { // ENDED
                 setIsPlaying(false);
                 setIsBuffering(false);
-                pauseSilentKeepAlive();
                 handleNextSong();
               }
             },
@@ -188,13 +266,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     };
 
     const onVisibilityChange = () => {
+      // If user minimized or switched tab while song was playing, auto-resume playback
       if (document.hidden && isPlayingRef.current && ytPlayerRef.current) {
         initSilentKeepAlive();
         setTimeout(() => {
           try {
             ytPlayerRef.current?.playVideo();
           } catch (_) {}
-        }, 150);
+        }, 120);
       }
     };
 
@@ -354,10 +433,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.playbackState = 'playing';
 
     navigator.mediaSession.setActionHandler('play', () => {
+      initSilentKeepAlive();
       ytPlayerRef.current?.playVideo();
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
+      pauseSilentKeepAlive();
       ytPlayerRef.current?.pauseVideo();
     });
 
@@ -386,6 +467,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
 
     navigator.mediaSession.setActionHandler('stop', () => {
+      pauseSilentKeepAlive();
       ytPlayerRef.current?.pauseVideo();
     });
   }, [currentSong, duration]);
@@ -396,12 +478,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (currentSongRef.current?.id === song.id && ytPlayerRef.current) {
       try {
         const state = ytPlayerRef.current.getPlayerState();
-        if (state === 1) { // Playing
+        if (state === 1) { // Playing -> Pause
           ytPlayerRef.current.pauseVideo();
-        } else {
+        } else { // Paused -> Play
+          initSilentKeepAlive();
           ytPlayerRef.current.playVideo();
         }
       } catch (_) {
+        initSilentKeepAlive();
         ytPlayerRef.current.playVideo();
       }
       return;
@@ -412,6 +496,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentTime(0);
     setDuration(song.duration || 0);
     setIsBuffering(true);
+    initSilentKeepAlive();
 
     if (newQueue && newQueue.length > 0) {
       setQueue(newQueue);
@@ -439,11 +524,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     try {
       const state = ytPlayerRef.current.getPlayerState();
       if (state === 1) { // Playing -> Pause
+        pauseSilentKeepAlive();
         ytPlayerRef.current.pauseVideo();
       } else { // Paused -> Play
+        initSilentKeepAlive();
         ytPlayerRef.current.playVideo();
       }
     } catch (_) {
+      initSilentKeepAlive();
       ytPlayerRef.current.playVideo();
     }
   };
@@ -461,10 +549,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const currentQueue = queueRef.current;
     if (!activeSong || currentQueue.length === 0) return;
 
+    // 1. Repeat One
+    if (repeatModeRef.current === 'one') {
+      seek(0);
+      ytPlayerRef.current?.playVideo();
+      return;
+    }
+
+    // 2. Shuffle mode
+    if (isShuffleRef.current && currentQueue.length > 1) {
+      const otherSongs = currentQueue.filter(s => s.id !== activeSong.id);
+      const randomIndex = Math.floor(Math.random() * otherSongs.length);
+      playSong(otherSongs[randomIndex]);
+      return;
+    }
+
+    // 3. Normal queue progression
     const currentIndex = currentQueue.findIndex(s => s.id === activeSong.id);
     if (currentIndex !== -1 && currentIndex < currentQueue.length - 1) {
       playSong(currentQueue[currentIndex + 1]);
-    } else if (currentQueue.length > 0) {
+    } else if (currentQueue.length > 0 && repeatModeRef.current === 'all') {
       playSong(currentQueue[0]); // Loop back to start
     }
   };
@@ -545,6 +649,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isFullPlayerOpen,
         isLyricsOpen,
         ambientColor,
+        isShuffle,
+        toggleShuffle,
+        repeatMode,
+        toggleRepeat,
+        sleepTimer,
+        sleepTimerRemaining,
+        setSleepTimer,
         playSong,
         togglePlay,
         seek,

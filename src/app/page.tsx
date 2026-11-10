@@ -57,6 +57,23 @@ export default function HomePage() {
       }
     };
     fetchCharts();
+
+    // Auto-play shared song from URL query ?song=ID
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const songId = params.get('song');
+      if (songId) {
+        fetch(`/api/search?q=${encodeURIComponent(songId)}&type=song`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.songs && d.songs.length > 0) {
+              const matched = d.songs.find((s: Song) => s.id === songId) || d.songs[0];
+              playSongWithHistory(matched);
+            }
+          })
+          .catch(() => {});
+      }
+    }
   }, []);
 
   const handleSearch = async (query: string, type: 'song' | 'artist' | 'all' = 'all') => {
