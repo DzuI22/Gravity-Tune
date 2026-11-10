@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  --background: #0e0d0c;
+  --foreground: #ede9dc;
 }
+
+/* ArchiveTune slide-in-from-top animation for toasts */
+@keyframes slideInFromTop { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.slide-in-from-top-4 { animation: slideInFromTop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 body {
   background-color: var(--background);

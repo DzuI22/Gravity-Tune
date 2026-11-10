@@ -285,4 +285,25 @@ export const CURATED_ARTISTS: CuratedArtist[] = [
     genre: 'K-Pop / Ballad',
     thumbnail: 'https://lh3.googleusercontent.com/iu4R0_A8K0q2L0U8qL6jI2=w300-h300-p-l90-rj',
   },
+  {
+    id: 'UCyuika_artist_id',
+    name: 'Yuika',
+    category: 'international',
+    genre: 'J-Pop / Acoustic',
+    thumbnail: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop',
+  },
+  {
+    id: 'UCaimyon_artist_id',
+    name: 'aimyon',
+    category: 'international',
+    genre: 'J-Rock / Pop',
+    thumbnail: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop',
+  },
+  {
+    id: 'UCpanturas_id',
+    name: 'The Panturas',
+    category: 'indonesia',
+    genre: 'Surf Rock',
+    thumbnail: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&h=300&fit=crop',
+  },
 ];

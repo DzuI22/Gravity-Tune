@@ -262,8 +262,24 @@ export default function FullPlayer() {
             </div>
             <div className="flex items-center justify-between text-xs font-bold text-[#a39f93]">
               <span>{formatDuration(currentTime)}</span>
-              <span>{formatDuration(duration)}</span>
+              <span>{duration > currentTime ? `-${formatDuration(duration - currentTime)}` : formatDuration(duration)}</span>
             </div>
+          </div>
+
+          {/* Volume Slider (From Photo 4 & 6) */}
+          <div className="w-full flex items-center gap-3 px-1">
+            <button onClick={toggleMute} className="text-[#a39f93] hover:text-white transition-colors">
+              {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={isMuted ? 0 : volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/15 rounded-full appearance-none cursor-pointer accent-[#ede9dc]"
+            />
           </div>
 
           {/* 5 Controller Row: Shuffle, Prev, Big Round Play, Next, Repeat (Persis Foto) */}

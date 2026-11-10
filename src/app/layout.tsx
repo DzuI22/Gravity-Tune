@@ -2,20 +2,18 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { PlayerProvider } from '@/context/PlayerContext';
 import { AuthProvider } from '@/context/AuthContext';
-import AmbientBackground from '@/components/AmbientBackground';
 import MiniPlayer from '@/components/MiniPlayer';
 import FullPlayer from '@/components/FullPlayer';
-import AuthModal from '@/components/AuthModal';
 import PWAInstaller from '@/components/PWAInstaller';
 
 export const metadata: Metadata = {
-  title: 'GravityTune - Audiophile Music Player',
-  description: 'Streaming music player with Apple Music & Spotify modern aesthetics, live synced lyrics, and artist search.',
+  title: 'ArchiveTune - YouTube Music Player',
+  description: 'High-performance YouTube Music web player with ArchiveTune UI — Mood & Genres, Live Lyrics, 2026 Recap, and more.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'GravityTune',
+    title: 'ArchiveTune',
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -24,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#09090b',
+  themeColor: '#0e0d0c',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -34,14 +32,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className="antialiased min-h-screen relative text-foreground selection:bg-rose-500 selection:text-white">
+      <body className="antialiased min-h-screen bg-[#0e0d0c] text-[#ede9dc] selection:bg-[#d1e289] selection:text-black">
         <AuthProvider>
           <PlayerProvider>
-            <AmbientBackground />
             {children}
             <MiniPlayer />
             <FullPlayer />
-            <AuthModal />
             <PWAInstaller />
           </PlayerProvider>
         </AuthProvider>
