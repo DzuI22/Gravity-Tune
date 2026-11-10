@@ -18,7 +18,7 @@ import {
   Repeat1
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, getHdThumbnail } from '@/lib/utils';
 
 export default function MiniPlayer() {
   const {
@@ -68,7 +68,7 @@ export default function MiniPlayer() {
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="relative w-11 h-11 rounded-2xl overflow-hidden bg-white/10 flex-shrink-0 shadow-md">
                 <img
-                  src={currentSong.thumbnail}
+                  src={getHdThumbnail(currentSong.thumbnail, currentSong.id)}
                   alt={currentSong.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -146,7 +146,7 @@ export default function MiniPlayer() {
               title="Buka Layar Penuh"
             >
               <img
-                src={currentSong.thumbnail}
+                src={getHdThumbnail(currentSong.thumbnail, currentSong.id)}
                 alt={currentSong.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />

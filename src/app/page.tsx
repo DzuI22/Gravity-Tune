@@ -33,7 +33,7 @@ import { usePlayer } from '@/context/PlayerContext';
 import { useAuth } from '@/context/AuthContext';
 import { Song } from '@/types/music';
 import { CURATED_ARTISTS, CuratedArtist } from '@/data/curatedArtists';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
 import StatsModal from '@/components/StatsModal';
 import SettingsModal from '@/components/SettingsModal';
@@ -335,7 +335,7 @@ export default function HomePage() {
                 className="relative rounded-3xl overflow-hidden aspect-[16/9] sm:aspect-[21/9] bg-[#1a1917] border border-white/10 shadow-2xl cursor-pointer group"
               >
                 <img
-                  src={heroSong.thumbnail}
+                  src={getHdThumbnail(heroSong.thumbnail, heroSong.id)}
                   alt={heroSong.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -367,16 +367,16 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Quick Picks 4-Song List (Photo 4 Left) */}
+              {/* Quick Picks 8-Song List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                {quickPicks.slice(1, 5).map((song) => (
+                {quickPicks.slice(1, 9).map((song) => (
                   <div
                     key={song.id}
                     onClick={() => playSongWithTracking(song, quickPicks)}
                     className="flex items-center justify-between p-2.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 cursor-pointer transition-all active:scale-[0.99] group"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <img src={song.thumbnail} className="w-12 h-12 rounded-xl object-cover" />
+                      <img src={getHdThumbnail(song.thumbnail, song.id)} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                       <div className="min-w-0 pr-2">
                         <p className="text-sm font-bold text-[#ede9dc] truncate group-hover:text-[#d1e289] transition-colors">
                           {song.title}
@@ -394,15 +394,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* New Releases Carousel (Photo 3) */}
+            {/* New Releases & Trending Carousel */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">New releases</h3>
+                <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">New releases & Trending</h3>
                 <ChevronRight className="w-5 h-5 text-[#9e9a8f]" />
               </div>
 
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-                {trending.slice(0, 8).map((song) => (
+                {trending.slice(0, 16).map((song) => (
                   <div
                     key={song.id}
                     onClick={() => playSongWithTracking(song, trending)}
@@ -410,7 +410,7 @@ export default function HomePage() {
                   >
                     <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#1b1917] border border-white/5 shadow-lg mb-2">
                       <img
-                        src={song.thumbnail}
+                        src={getHdThumbnail(song.thumbnail, song.id)}
                         alt={song.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -429,18 +429,21 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Keep Listening Circular Artist Avatars (Photo 4 Left) */}
+            {/* Keep Listening Circular Artist Avatars (Semua 35+ Artis Lengkap!) */}
             <div className="space-y-3 pt-2">
-              <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Keep listening</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Keep listening (Top Artists)</h3>
+                <span className="text-xs font-semibold text-[#9e9a8f]">{CURATED_ARTISTS.length} Artis</span>
+              </div>
               <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-none">
-                {CURATED_ARTISTS.slice(0, 10).map((artist) => (
+                {CURATED_ARTISTS.map((artist) => (
                   <div
                     key={artist.id}
                     onClick={() => setSelectedArtist({ id: artist.id, name: artist.name, thumbnail: artist.thumbnail })}
                     className="flex flex-col items-center flex-shrink-0 cursor-pointer group"
                   >
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white/10 border-2 border-white/10 group-hover:border-[#d1e289] transition-all shadow-xl group-hover:scale-105">
-                      <img src={artist.thumbnail} alt={artist.name} className="w-full h-full object-cover" />
+                      <img src={getHdThumbnail(artist.thumbnail)} alt={artist.name} className="w-full h-full object-cover" />
                     </div>
                     <p className="text-xs font-bold text-[#ede9dc] mt-2 truncate max-w-[84px] text-center group-hover:text-[#d1e289]">
                       {artist.name}
@@ -515,7 +518,7 @@ export default function HomePage() {
                       onClick={() => playSongWithTracking(song, searchResults)}
                       className="p-3 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
                     >
-                      <img src={song.thumbnail} className="w-12 h-12 rounded-xl object-cover" />
+                      <img src={getHdThumbnail(song.thumbnail, song.id)} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-[#ede9dc] truncate group-hover:text-[#d1e289]">
                           {song.title}
@@ -634,7 +637,7 @@ export default function HomePage() {
                       onClick={() => playSongWithTracking(song)}
                       className="p-3 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
                     >
-                      <img src={song.thumbnail} className="w-12 h-12 rounded-xl object-cover" />
+                      <img src={getHdThumbnail(song.thumbnail, song.id)} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-[#ede9dc] truncate group-hover:text-[#d1e289]">
                           {song.title}
@@ -777,7 +780,7 @@ export default function HomePage() {
                       onClick={() => playSongWithTracking(song)}
                       className="p-3 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
                     >
-                      <img src={song.thumbnail} className="w-12 h-12 rounded-xl object-cover" />
+                      <img src={getHdThumbnail(song.thumbnail, song.id)} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-[#ede9dc] truncate group-hover:text-[#d1e289]">
                           {song.title}

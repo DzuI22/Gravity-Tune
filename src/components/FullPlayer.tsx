@@ -24,7 +24,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import LyricsView from './LyricsView';
 
 export default function FullPlayer() {
@@ -173,9 +173,9 @@ export default function FullPlayer() {
               </div>
             ) : (
               <img
-                src={currentSong.thumbnail}
+                src={getHdThumbnail(currentSong.thumbnail, currentSong.id)}
                 alt={currentSong.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover shadow-2xl"
               />
             )}
           </div>

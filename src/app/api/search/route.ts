@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getYtClient } from '@/lib/youtube';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import { Song } from '@/types/music';
 
 export const dynamic = 'force-dynamic';
@@ -32,9 +32,11 @@ export async function GET(request: NextRequest) {
           const artist = item.artists?.[0]?.name || item.author?.name || item.artist?.name || 'Unknown Artist';
           const album = item.album?.name || '';
           const durationSec = item.duration?.seconds || 0;
-          let thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url
+          const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url
             || item.thumbnail?.contents?.[item.thumbnail.contents.length - 1]?.url
             || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+          
+          const thumbnail = getHdThumbnail(rawThumb, id);
           songs.push({ id, title, artist, album, duration: durationSec, durationFormatted: formatDuration(durationSec), thumbnail });
         } catch (_) {}
       }
@@ -50,9 +52,10 @@ export async function GET(request: NextRequest) {
           const id = item.id || item.channel_id;
           if (!id) continue;
           const name = item.name?.text || item.name || item.title?.text || 'Unknown Artist';
-          const thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url
+          const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url
             || item.thumbnail?.contents?.[item.thumbnail.contents.length - 1]?.url
             || '';
+          const thumbnail = getHdThumbnail(rawThumb);
           artists.push({ id, name, thumbnail });
         } catch (_) {}
       }
@@ -80,13 +83,14 @@ export async function GET(request: NextRequest) {
           const title = item.title?.text || item.title || '';
           const artist = item.artists?.[0]?.name || item.author?.name || '';
           const durationSec = item.duration?.seconds || 0;
-          const thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+          const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+          const thumbnail = getHdThumbnail(rawThumb, id);
           songs.push({ id, title, artist, album: '', duration: durationSec, durationFormatted: formatDuration(durationSec), thumbnail });
         } catch (_) {}
       }
     }
 
-    return NextResponse.json({ songs: songs.slice(0, 20), artists: artists.slice(0, 10) });
+    return NextResponse.json({ songs: songs.slice(0, 30), artists: artists.slice(0, 15) });
   } catch (error: any) {
     console.error('Search error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

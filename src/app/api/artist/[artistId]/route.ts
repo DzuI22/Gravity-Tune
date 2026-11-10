@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getYtClient } from '@/lib/youtube';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import { Song } from '@/types/music';
 
 export const dynamic = 'force-dynamic';
@@ -20,14 +20,16 @@ export async function GET(request: NextRequest, { params }: { params: { artistId
       const artistInfo: any = await yt.music.getArtist(artistId);
       artistName = artistInfo.header?.title?.text || artistInfo.name || '';
 
-      // Extract high resolution artist banner/thumbnail
       if (artistInfo.header?.thumbnails && artistInfo.header.thumbnails.length > 0) {
         artistThumbnail = artistInfo.header.thumbnails[artistInfo.header.thumbnails.length - 1].url;
       } else if (artistInfo.header?.thumbnail?.contents && artistInfo.header.thumbnail.contents.length > 0) {
         artistThumbnail = artistInfo.header.thumbnail.contents[artistInfo.header.thumbnail.contents.length - 1].url;
       }
+      if (artistThumbnail) {
+        artistThumbnail = getHdThumbnail(artistThumbnail);
+      }
 
-      // Priority A: artist.getAllSongs() - gives full 50-100+ discography strictly by this artist
+      // Priority A: artist.getAllSongs()
       if (typeof artistInfo.getAllSongs === 'function') {
         const allSongs = await artistInfo.getAllSongs().catch(() => null);
         if (allSongs && allSongs.contents && allSongs.contents.length > 0) {
@@ -38,9 +40,10 @@ export async function GET(request: NextRequest, { params }: { params: { artistId
             const artist = item.artists?.map((a: any) => a.name).join(', ') || item.author?.name || artistName;
             const album = item.album?.name || '';
             const durationSec = item.duration?.seconds || 0;
-            const thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url
+            const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url
               || item.thumbnail?.contents?.[item.thumbnail.contents.length - 1]?.url
               || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+            const thumbnail = getHdThumbnail(rawThumb, id);
 
             songs.push({
               id,
@@ -68,9 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: { artistId
             const artist = item.artists?.map((a: any) => a.name).join(', ') || item.author?.name || artistName;
             const album = item.album?.name || '';
             const durationSec = item.duration?.seconds || 0;
-            const thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url
+            const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url
               || item.thumbnail?.contents?.[item.thumbnail.contents.length - 1]?.url
               || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+            const thumbnail = getHdThumbnail(rawThumb, id);
 
             songs.push({
               id,
@@ -93,22 +97,16 @@ export async function GET(request: NextRequest, { params }: { params: { artistId
     if (songs.length === 0 && targetQuery) {
       const res: any = await yt.music.search(targetQuery, { type: 'song' }).catch(() => null);
       const contents = res?.songs?.contents || res?.contents || [];
-      const queryLower = targetQuery.toLowerCase();
 
       for (const item of contents) {
         const id = item.id || item.video_id;
         if (!id) continue;
         const title = item.title?.text || item.title || '';
         const artist = item.artists?.map((a: any) => a.name).join(', ') || item.author?.name || '';
-        
-        // Strict filter: The song's artist MUST match the artist name
-        if (!artist.toLowerCase().includes(queryLower) && !queryLower.includes(artist.toLowerCase())) {
-          continue;
-        }
-
         const album = item.album?.name || '';
         const durationSec = item.duration?.seconds || 0;
-        const thumbnail = item.thumbnails?.[item.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        const thumbnail = getHdThumbnail(rawThumb, id);
 
         if (!artistName) artistName = artist;
         if (!artistThumbnail && thumbnail) artistThumbnail = thumbnail;
@@ -127,7 +125,7 @@ export async function GET(request: NextRequest, { params }: { params: { artistId
 
     return NextResponse.json({
       artistName: artistName || 'Artist',
-      artistThumbnail,
+      artistThumbnail: getHdThumbnail(artistThumbnail),
       songs,
     });
   } catch (error: any) {
