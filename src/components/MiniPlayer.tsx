@@ -60,7 +60,7 @@ export default function MiniPlayer() {
       <div className="md:hidden fixed bottom-[68px] left-3 right-3 z-40 max-w-md mx-auto animate-in slide-in-from-bottom-3 duration-300">
         <div
           onClick={() => setIsFullPlayerOpen(true)}
-          className="bg-[#181614]/98 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-2xl shadow-black/95 flex flex-col cursor-pointer hover:border-[#d1e289]/50 transition-all duration-300 active:scale-[0.99] group overflow-hidden"
+          className="bg-[#131211] border border-white/10 rounded-3xl shadow-[0_12px_45px_rgba(0,0,0,0.98)] flex flex-col cursor-pointer hover:border-[#d1e289]/50 transition-all duration-300 active:scale-[0.99] group overflow-hidden"
         >
           {/* Main Row */}
           <div className="flex items-center justify-between gap-3 p-2.5">
@@ -137,7 +137,7 @@ export default function MiniPlayer() {
           sehingga bagian bawah 100% bebas tumpang tindih!
           ======================================================== */}
       <div className="hidden md:block fixed bottom-3 left-6 right-6 max-w-5xl mx-auto z-40 animate-in slide-in-from-bottom-4 duration-300">
-        <div className="bg-[#181614]/98 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 shadow-2xl shadow-black/95 flex items-center justify-between gap-6">
+        <div className="bg-[#131211] border border-white/10 rounded-3xl p-3 shadow-[0_12px_45px_rgba(0,0,0,0.98)] flex items-center justify-between gap-6">
           {/* Sisi Kiri: Thumbnail, Info Lagu, Tombol Favorite & Expand */}
           <div className="flex items-center gap-3.5 min-w-0 w-1/4">
             <div
