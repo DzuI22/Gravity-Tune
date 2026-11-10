@@ -6,6 +6,7 @@ import { Song, LyricsData } from '@/types/music';
 interface PlayerContextType {
   currentSong: Song | null;
   isPlaying: boolean;
+  isBuffering: boolean;
   currentTime: number;
   duration: number;
   volume: number;
@@ -35,6 +36,7 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.8);
@@ -146,26 +148,54 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       requestWakeLock();
     };
 
+    const onPlaying = () => {
+      setIsPlaying(true);
+      setIsBuffering(false);
+    };
+
     const onPause = () => {
       setIsPlaying(false);
+      setIsBuffering(false);
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
       releaseWakeLock();
     };
 
+    const onWaiting = () => {
+      setIsBuffering(true);
+    };
+
+    const onCanPlay = () => {
+      setIsBuffering(false);
+    };
+
+    const onError = () => {
+      console.warn('Audio stream playback error');
+      setIsPlaying(false);
+      setIsBuffering(false);
+    };
+
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('play', onPlay);
+    audio.addEventListener('playing', onPlaying);
     audio.addEventListener('pause', onPause);
+    audio.addEventListener('waiting', onWaiting);
+    audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('error', onError);
 
     return () => {
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('loadedmetadata', onLoadedMetadata);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('playing', onPlaying);
       audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('waiting', onWaiting);
+      audio.removeEventListener('canplay', onCanPlay);
+      audio.removeEventListener('error', onError);
       audio.pause();
       audio.src = '';
       silentAudioRef.current?.pause();
@@ -311,8 +341,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [currentSong, duration]);
 
   const playSong = (song: Song, newQueue?: Song[]) => {
+    // If user clicked the same song that is already active
+    if (currentSongRef.current?.id === song.id && audioRef.current) {
+      if (audioRef.current.paused) {
+        audioRef.current.play().catch(err => {
+          if (err.name !== 'AbortError') console.warn('Play error:', err);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+      return;
+    }
+
     setCurrentSong(song);
     currentSongRef.current = song;
+    setIsBuffering(true);
 
     if (newQueue && newQueue.length > 0) {
       setQueue(newQueue);
@@ -324,10 +367,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     if (audioRef.current) {
+      audioRef.current.pause();
       audioRef.current.src = `/api/stream/${song.id}`;
       audioRef.current.load();
       audioRef.current.play().catch(err => {
-        console.warn('Auto-play prevented or stream loading:', err);
+        if (err.name !== 'AbortError') {
+          console.warn('Auto-play prevented or stream loading:', err);
+        }
       });
     }
 
@@ -336,10 +382,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const togglePlay = () => {
     if (!audioRef.current || !currentSong) return;
-    if (isPlaying) {
-      audioRef.current.pause();
+    if (audioRef.current.paused) {
+      audioRef.current.play().catch(err => {
+        if (err.name !== 'AbortError') console.warn('Play error:', err);
+      });
     } else {
-      audioRef.current.play().catch(console.error);
+      audioRef.current.pause();
     }
   };
 
@@ -425,6 +473,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       value={{
         currentSong,
         isPlaying,
+        isBuffering,
         currentTime,
         duration,
         volume,

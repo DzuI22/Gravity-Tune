@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Play, Pause, Heart } from 'lucide-react';
+import { Play, Pause, Heart, Loader2 } from 'lucide-react';
 import { Song } from '@/types/music';
 import { usePlayer } from '@/context/PlayerContext';
 
@@ -11,7 +11,7 @@ interface SongCardProps {
 }
 
 export default function SongCard({ song, playlist }: SongCardProps) {
-  const { currentSong, isPlaying, playSong, togglePlay, toggleFavorite, isFavorite } = usePlayer();
+  const { currentSong, isPlaying, isBuffering, playSong, togglePlay, toggleFavorite, isFavorite } = usePlayer();
   const isCurrent = currentSong?.id === song.id;
   const isFav = isFavorite(song.id);
 
@@ -39,12 +39,14 @@ export default function SongCard({ song, playlist }: SongCardProps) {
         {/* Floating play button like Spotify */}
         <div
           className={`absolute bottom-3 right-3 w-11 h-11 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xl shadow-rose-500/40 transform transition-all duration-300 ${
-            isCurrent && isPlaying
+            isCurrent && (isPlaying || isBuffering)
               ? 'opacity-100 translate-y-0 scale-100'
               : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 scale-95 hover:scale-105'
           }`}
         >
-          {isCurrent && isPlaying ? (
+          {isCurrent && isBuffering ? (
+            <Loader2 className="w-5 h-5 animate-spin text-white" />
+          ) : isCurrent && isPlaying ? (
             <Pause className="w-5 h-5 fill-white" />
           ) : (
             <Play className="w-5 h-5 fill-white ml-0.5" />

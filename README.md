@@ -1,3 +1,12 @@
+---
+title: Gravity Tune
+emoji: 🎵
+colorFrom: indigo
+colorTo: pink
+sdk: docker
+app_port: 7860
+---
+
 # 🎵 GravityTune
 
 > **Audiophile Music Client** dengan arsitektur mesin open-source (InnerTube / ArchiveTune) dan estetika mewah modern gabungan **Spotify & Apple Music**.

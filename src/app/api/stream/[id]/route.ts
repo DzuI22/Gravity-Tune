@@ -6,6 +6,47 @@ export const dynamic = 'force-dynamic';
 
 const ytdlClient = new Ytdl();
 
+// List of public Invidious and Piped instances for datacenter IP fallback
+const FALLBACK_ENDPOINTS = [
+  'https://invidious.nerdvpn.de/api/v1/videos/',
+  'https://inv.nadeko.net/api/v1/videos/',
+  'https://invidious.private.coffee/api/v1/videos/',
+  'https://pipedapi.kavin.rocks/streams/',
+  'https://pipedapi.adminforge.de/streams/',
+];
+
+async function tryFallbackStream(id: string): Promise<string | null> {
+  for (const endpoint of FALLBACK_ENDPOINTS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(`${endpoint}${id}`, {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      // Piped format
+      if (data.audioStreams && Array.isArray(data.audioStreams) && data.audioStreams.length > 0) {
+        const audio = data.audioStreams.find((s: any) => s.mimeType?.includes('webm') || s.mimeType?.includes('mp4')) || data.audioStreams[0];
+        if (audio?.url) return audio.url;
+      }
+
+      // Invidious format
+      if (data.adaptiveFormats && Array.isArray(data.adaptiveFormats)) {
+        const audio = data.adaptiveFormats.find((f: any) => f.type?.startsWith('audio/'));
+        if (audio?.url) return audio.url;
+      }
+    } catch (_) {
+      // Continue to next endpoint
+    }
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
 
@@ -13,6 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: 'Missing video ID' }, { status: 400 });
   }
 
+  // 1. Primary: Try direct distube stream download
   try {
     const rangeHeader = request.headers.get('range');
     let rangeOption: { start?: number; end?: number } | undefined = undefined;
@@ -45,8 +87,22 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       status: rangeOption?.start ? 206 : 200,
       headers,
     });
-  } catch (error: any) {
-    console.error(`Stream error for id ${id}:`, error);
-    return NextResponse.json({ error: error.message || 'Streaming failed' }, { status: 500 });
+  } catch (primaryErr: any) {
+    console.warn(`[STREAM API] Primary YTDL stream failed for ${id} (${primaryErr.message}), trying cloud fallback...`);
+
+    // 2. Secondary Fallback: Try Piped/Invidious proxy redirect
+    try {
+      const fallbackUrl = await tryFallbackStream(id);
+      if (fallbackUrl) {
+        return NextResponse.redirect(fallbackUrl, 307);
+      }
+    } catch (fallbackErr: any) {
+      console.error(`[STREAM API] Fallback failed for ${id}:`, fallbackErr.message);
+    }
+
+    return NextResponse.json(
+      { error: primaryErr.message || 'Streaming failed' },
+      { status: 500 }
+    );
   }
 }

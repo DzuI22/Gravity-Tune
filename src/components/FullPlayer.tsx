@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Mic2, ListMusic, Heart } from 'lucide-react';
+import { ChevronDown, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Mic2, ListMusic, Heart, Loader2 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { formatDuration } from '@/lib/utils';
 import LyricsView from './LyricsView';
@@ -10,6 +10,7 @@ export default function FullPlayer() {
   const {
     currentSong,
     isPlaying,
+    isBuffering,
     currentTime,
     duration,
     togglePlay,
@@ -145,8 +146,11 @@ export default function FullPlayer() {
             <button
               onClick={togglePlay}
               className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/20"
+              title={isBuffering ? 'Buffering...' : isPlaying ? 'Pause' : 'Play'}
             >
-              {isPlaying ? (
+              {isBuffering ? (
+                <Loader2 className="w-8 h-8 animate-spin text-black" />
+              ) : isPlaying ? (
                 <Pause className="w-8 h-8 fill-black" />
               ) : (
                 <Play className="w-8 h-8 fill-black ml-1" />

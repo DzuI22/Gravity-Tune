@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize2, Mic2, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize2, Mic2, Heart, Loader2 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { formatDuration } from '@/lib/utils';
 
@@ -9,6 +9,7 @@ export default function MiniPlayer() {
   const {
     currentSong,
     isPlaying,
+    isBuffering,
     currentTime,
     duration,
     togglePlay,
@@ -92,9 +93,11 @@ export default function MiniPlayer() {
               <button
                 onClick={togglePlay}
                 className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
-                title={isPlaying ? 'Pause' : 'Play'}
+                title={isBuffering ? 'Buffering...' : isPlaying ? 'Pause' : 'Play'}
               >
-                {isPlaying ? (
+                {isBuffering ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-black" />
+                ) : isPlaying ? (
                   <Pause className="w-5 h-5 fill-black" />
                 ) : (
                   <Play className="w-5 h-5 fill-black ml-0.5" />

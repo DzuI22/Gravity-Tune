@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Play, Pause, Heart, MoreVertical } from 'lucide-react';
+import { Play, Pause, Heart, MoreVertical, Loader2 } from 'lucide-react';
 import { Song } from '@/types/music';
 import { usePlayer } from '@/context/PlayerContext';
 
@@ -12,7 +12,7 @@ interface SongRowProps {
 }
 
 export default function SongRow({ song, index, playlist }: SongRowProps) {
-  const { currentSong, isPlaying, playSong, togglePlay, toggleFavorite, isFavorite } = usePlayer();
+  const { currentSong, isPlaying, isBuffering, playSong, togglePlay, toggleFavorite, isFavorite } = usePlayer();
   const isCurrent = currentSong?.id === song.id;
   const isFav = isFavorite(song.id);
 
@@ -33,7 +33,9 @@ export default function SongRow({ song, index, playlist }: SongRowProps) {
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <div className="w-6 text-center text-xs font-semibold text-white/40 group-hover:hidden">
-          {isCurrent && isPlaying ? (
+          {isCurrent && isBuffering ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400 mx-auto" />
+          ) : isCurrent && isPlaying ? (
             <div className="flex items-center justify-center gap-0.5 h-3">
               <span className="w-1 h-3 bg-rose-500 animate-pulse rounded-full" />
               <span className="w-1 h-2 bg-rose-500 animate-pulse delay-75 rounded-full" />
@@ -45,7 +47,9 @@ export default function SongRow({ song, index, playlist }: SongRowProps) {
         </div>
 
         <div className="w-6 hidden group-hover:flex items-center justify-center text-white">
-          {isCurrent && isPlaying ? (
+          {isCurrent && isBuffering ? (
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
+          ) : isCurrent && isPlaying ? (
             <Pause className="w-4 h-4 fill-white" />
           ) : (
             <Play className="w-4 h-4 fill-white" />
