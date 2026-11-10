@@ -34,9 +34,15 @@ export default function MiniPlayer() {
 
   return (
     <div className="fixed bottom-3 left-3 right-3 md:left-68 md:right-6 z-30">
-      <div className="glass-panel rounded-2xl px-4 py-3 shadow-2xl flex flex-col gap-2 border border-white/10 backdrop-blur-2xl">
+      <div
+        onClick={() => setIsFullPlayerOpen(true)}
+        className="glass-panel rounded-2xl px-4 py-3 shadow-2xl flex flex-col gap-2 border border-white/10 backdrop-blur-2xl cursor-pointer hover:border-white/20 transition-all"
+      >
         {/* Progress Bar (interactive slider) */}
-        <div className="relative w-full group flex items-center h-2 cursor-pointer">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full group flex items-center h-2 cursor-pointer"
+        >
           <input
             type="range"
             min={0}
@@ -50,8 +56,7 @@ export default function MiniPlayer() {
         <div className="flex items-center justify-between gap-4">
           {/* Song Info (Click to open full player) */}
           <div
-            onClick={() => setIsFullPlayerOpen(true)}
-            className="flex items-center gap-3 min-w-0 max-w-[40%] cursor-pointer group"
+            className="flex items-center gap-3 min-w-0 flex-1 max-w-[50%] group"
           >
             <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white/10 flex-shrink-0 shadow-md">
               <img
@@ -80,7 +85,10 @@ export default function MiniPlayer() {
           </div>
 
           {/* Player Controls */}
-          <div className="flex flex-col items-center">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex flex-col items-center"
+          >
             <div className="flex items-center gap-4">
               <button
                 onClick={prevSong}
@@ -121,7 +129,10 @@ export default function MiniPlayer() {
           </div>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-3"
+          >
             {/* Live Lyrics Button */}
             <button
               onClick={() => {

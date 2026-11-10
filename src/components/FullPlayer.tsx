@@ -59,6 +59,7 @@ export default function FullPlayer() {
   } = usePlayer();
 
   const [activeTab, setActiveTab] = useState<'lyrics' | 'queue'>('lyrics');
+  const [mobileTab, setMobileTab] = useState<'player' | 'lyrics' | 'queue'>('player');
   const [showShareToast, setShowShareToast] = useState(false);
   const [isSleepModalOpen, setIsSleepModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
@@ -148,13 +149,35 @@ export default function FullPlayer() {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-12 py-5 overflow-y-auto max-w-7xl mx-auto w-full items-center">
         {/* Left column: Player Controller Styled Persis Seperti Foto */}
         <div className="flex flex-col items-center justify-center max-w-md mx-auto w-full space-y-5">
-          {/* Album Artwork Cover */}
-          <div className="relative aspect-square w-full max-w-[320px] sm:max-w-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 group">
-            <img
-              src={currentSong.thumbnail}
-              alt={currentSong.title}
-              className="w-full h-full object-cover"
-            />
+          {/* Album Artwork Cover OR Mobile Lyrics/Queue when toggled */}
+          <div className="relative aspect-square w-full max-w-[240px] sm:max-w-[300px] md:max-w-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 group">
+            {mobileTab === 'lyrics' ? (
+              <div className="w-full h-full p-4 overflow-y-auto bg-black/60 backdrop-blur-md">
+                <LyricsView />
+              </div>
+            ) : mobileTab === 'queue' ? (
+              <div className="w-full h-full p-3 overflow-y-auto bg-black/60 backdrop-blur-md space-y-1">
+                <p className="text-[11px] font-bold text-white/50 uppercase px-2 py-1">Daftar Putar ({queue.length})</p>
+                {queue.map(s => (
+                  <div
+                    key={s.id}
+                    onClick={() => playSong(s)}
+                    className={`p-2 rounded-xl text-xs flex items-center gap-2.5 cursor-pointer ${
+                      s.id === currentSong.id ? 'bg-white/20 text-rose-400 font-bold' : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <img src={s.thumbnail} className="w-8 h-8 rounded-lg object-cover" />
+                    <span className="truncate flex-1 font-semibold">{s.title}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <img
+                src={currentSong.thumbnail}
+                alt={currentSong.title}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
 
           {/* Title & Action Buttons Row (Persis seperti Foto Tulus - Teh Hijau) */}
@@ -305,9 +328,14 @@ export default function FullPlayer() {
           <div className="w-full flex items-center justify-between gap-3 pt-3">
             {/* Queue Pill */}
             <button
-              onClick={() => setActiveTab('queue')}
-              className={`flex-1 py-3.5 px-4 rounded-3xl flex items-center justify-center gap-2 text-sm font-extrabold transition-all border border-white/5 ${
-                activeTab === 'queue' ? 'bg-[#ede9dc] text-black shadow-lg' : 'bg-white/[0.08] text-[#ede9dc] hover:bg-white/[0.14]'
+              onClick={() => {
+                setActiveTab('queue');
+                setMobileTab(prev => (prev === 'queue' ? 'player' : 'queue'));
+              }}
+              className={`flex-1 py-3.5 px-4 rounded-3xl flex items-center justify-center gap-2 text-sm font-extrabold transition-all border border-white/5 active:scale-95 ${
+                activeTab === 'queue' && (mobileTab === 'queue' || typeof window !== 'undefined' && window.innerWidth >= 768)
+                  ? 'bg-[#ede9dc] text-black shadow-lg'
+                  : 'bg-white/[0.08] text-[#ede9dc] hover:bg-white/[0.14]'
               }`}
             >
               <ListMusic className="w-4 h-4" />
@@ -332,9 +360,14 @@ export default function FullPlayer() {
 
             {/* Lyrics Pill */}
             <button
-              onClick={() => setActiveTab('lyrics')}
-              className={`flex-1 py-3.5 px-4 rounded-3xl flex items-center justify-center gap-2 text-sm font-extrabold transition-all border border-white/5 ${
-                activeTab === 'lyrics' ? 'bg-[#ede9dc] text-black shadow-lg' : 'bg-white/[0.08] text-[#ede9dc] hover:bg-white/[0.14]'
+              onClick={() => {
+                setActiveTab('lyrics');
+                setMobileTab(prev => (prev === 'lyrics' ? 'player' : 'lyrics'));
+              }}
+              className={`flex-1 py-3.5 px-4 rounded-3xl flex items-center justify-center gap-2 text-sm font-extrabold transition-all border border-white/5 active:scale-95 ${
+                activeTab === 'lyrics' && (mobileTab === 'lyrics' || typeof window !== 'undefined' && window.innerWidth >= 768)
+                  ? 'bg-[#ede9dc] text-black shadow-lg'
+                  : 'bg-white/[0.08] text-[#ede9dc] hover:bg-white/[0.14]'
               }`}
             >
               <Mic2 className="w-4 h-4" />
@@ -343,8 +376,8 @@ export default function FullPlayer() {
           </div>
         </div>
 
-        {/* Right column: Interactive Synced Lyrics OR Queue list */}
-        <div className="h-[460px] md:h-[560px] glass-panel rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl">
+        {/* Right column: Interactive Synced Lyrics OR Queue list (Visible on Desktop / Tablets) */}
+        <div className="hidden md:block h-[560px] glass-panel rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl">
           {activeTab === 'lyrics' ? (
             <LyricsView />
           ) : (
