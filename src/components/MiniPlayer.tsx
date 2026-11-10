@@ -41,10 +41,11 @@ export default function MiniPlayer() {
     toggleShuffle,
     repeatMode,
     toggleRepeat,
+    isFullPlayerOpen,
     setIsFullPlayerOpen,
   } = usePlayer();
 
-  if (!currentSong) return null;
+  if (!currentSong || isFullPlayerOpen) return null;
 
   const isFav = isFavorite(currentSong.id);
   const progress = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
@@ -52,17 +53,18 @@ export default function MiniPlayer() {
   return (
     <>
       {/* ========================================================
-          MOBILE MINI PLAYER (< 768px)
-          Tampil persis di atas kapsul navigasi bawah (bottom-[74px])
+          MOBILE MINI PLAYER (< md / Layar HP)
+          Posisinya di bottom-[68px], tepat 8px di atas kapsul navigasi bawah (bottom-2)
+          Sama sekali TIDAK menutupi tombol Home, Search, dan Library!
           ======================================================== */}
-      <div className="md:hidden fixed bottom-[74px] left-3 right-3 z-50 animate-in slide-in-from-bottom-3 duration-300">
+      <div className="md:hidden fixed bottom-[68px] left-3 right-3 z-40 max-w-md mx-auto animate-in slide-in-from-bottom-3 duration-300">
         <div
           onClick={() => setIsFullPlayerOpen(true)}
           className="bg-[#181614]/98 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-2xl shadow-black/95 flex flex-col cursor-pointer hover:border-[#d1e289]/50 transition-all duration-300 active:scale-[0.99] group overflow-hidden"
         >
-          {/* Main Content */}
+          {/* Main Row */}
           <div className="flex items-center justify-between gap-3 p-2.5">
-            {/* Left: Thumbnail & Song Title */}
+            {/* Left: Artwork & Song Details */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="relative w-11 h-11 rounded-2xl overflow-hidden bg-white/10 flex-shrink-0 shadow-md">
                 <img
@@ -118,7 +120,7 @@ export default function MiniPlayer() {
             </div>
           </div>
 
-          {/* Scrubber progress bar di bawah */}
+          {/* Scrubber Progress Bar */}
           <div className="h-1 bg-white/10 rounded-full overflow-hidden mx-3 mb-2">
             <div
               className="h-full bg-[#d1e289] rounded-full transition-all duration-300"
@@ -129,16 +131,18 @@ export default function MiniPlayer() {
       </div>
 
       {/* ========================================================
-          DESKTOP / PC BOTTOM PLAYER BAR (>= 768px)
-          Tampil kokoh di bagian bawah layar PC dengan kontrol lengkap
+          DESKTOP / PC BOTTOM PLAYER BAR (>= md)
+          Tampil di bawah layar PC dengan kontrol lengkap.
+          Navigasi Home/Search/Library di PC ada di Header atas,
+          sehingga bagian bawah 100% bebas tumpang tindih!
           ======================================================== */}
-      <div className="hidden md:block fixed bottom-4 left-6 right-6 max-w-5xl mx-auto z-50 animate-in slide-in-from-bottom-4 duration-300">
-        <div className="bg-[#181614]/98 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 shadow-2xl shadow-black/90 flex items-center justify-between gap-6">
+      <div className="hidden md:block fixed bottom-3 left-6 right-6 max-w-5xl mx-auto z-40 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-[#181614]/98 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 shadow-2xl shadow-black/95 flex items-center justify-between gap-6">
           {/* Sisi Kiri: Thumbnail, Info Lagu, Tombol Favorite & Expand */}
           <div className="flex items-center gap-3.5 min-w-0 w-1/4">
             <div
               onClick={() => setIsFullPlayerOpen(true)}
-              className="relative w-13 h-13 rounded-2xl overflow-hidden bg-white/10 flex-shrink-0 shadow-lg cursor-pointer group"
+              className="relative w-12 h-12 rounded-2xl overflow-hidden bg-white/10 flex-shrink-0 shadow-lg cursor-pointer group"
               title="Buka Layar Penuh"
             >
               <img
@@ -252,7 +256,7 @@ export default function MiniPlayer() {
           <div className="flex items-center justify-end gap-3 w-1/4">
             <button
               onClick={() => setIsFullPlayerOpen(true)}
-              className="p-2 text-[#9e9a8f] hover:text-white transition-colors"
+              className="p-2 text-[#9e9a8f] hover:text-[#d1e289] transition-colors"
               title="Lirik & Full Player"
             >
               <Mic2 className="w-4 h-4" />
@@ -260,13 +264,13 @@ export default function MiniPlayer() {
 
             <button
               onClick={() => setIsFullPlayerOpen(true)}
-              className="p-2 text-[#9e9a8f] hover:text-white transition-colors"
+              className="p-2 text-[#9e9a8f] hover:text-[#d1e289] transition-colors"
               title="Daftar Putar"
             >
               <ListMusic className="w-4 h-4" />
             </button>
 
-            {/* Volume */}
+            {/* Volume Slider */}
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleMute}

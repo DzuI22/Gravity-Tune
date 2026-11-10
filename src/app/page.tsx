@@ -203,7 +203,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0e0d0c] text-[#ede9dc] font-sans pb-36 transition-colors duration-500">
+    <div className="min-h-screen bg-[#0e0d0c] text-[#ede9dc] font-sans pb-44 sm:pb-36 transition-colors duration-500">
       {/* Top Header (Matches Photos 1, 2, 3) */}
       <header className="sticky top-0 z-30 bg-[#0e0d0c]/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-8 py-3.5 flex items-center justify-between max-w-6xl mx-auto">
         {/* Brand Logo */}
@@ -221,6 +221,35 @@ export default function HomePage() {
             Gravity<span className="text-[#d1e289]">Tune</span>
           </span>
         </div>
+
+        {/* Desktop Navigation Tabs (Home, Search, Library) - Hanya tampil di PC/Laptop */}
+        <nav className="hidden md:flex items-center gap-1.5 bg-[#1a1816] border border-white/10 rounded-full p-1 shadow-inner">
+          {[
+            { id: 'home', label: 'Home', icon: Compass },
+            { id: 'search', label: 'Search', icon: Search },
+            { id: 'library', label: 'Library', icon: LayoutGrid },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = currentTab === tab.id && !selectedArtist;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setSelectedArtist(null);
+                  setCurrentTab(tab.id as any);
+                }}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold transition-all duration-300 active:scale-95 ${
+                  isActive
+                    ? 'bg-[#d1e289] text-black shadow-md shadow-[#d1e289]/20'
+                    : 'text-[#9e9a8f] hover:text-[#ede9dc] hover:bg-white/5'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right Header Action Icons */}
         <div className="flex items-center gap-1 sm:gap-2">
