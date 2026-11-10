@@ -53,6 +53,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const isYtReadyRef = useRef<boolean>(false);
   const pendingSongRef = useRef<Song | null>(null);
   const wakeLockRef = useRef<any>(null);
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Background Audio Keep-Alive for Mobile: Plays a silent HTML5 audio loop to keep Android Audio Channel open
+  const initSilentKeepAlive = () => {
+    if (typeof window === 'undefined') return;
+    if (!silentAudioRef.current) {
+      try {
+        const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        const audio = new Audio(silentWav);
+        audio.loop = true;
+        audio.volume = 0.001;
+        silentAudioRef.current = audio;
+      } catch (_) {}
+    }
+    silentAudioRef.current?.play().catch(() => {});
+  };
+
+  const pauseSilentKeepAlive = () => {
+    silentAudioRef.current?.pause();
+  };
 
   // Avoid stale closures in background callbacks and MediaSession
   const currentSongRef = useRef<Song | null>(null);
@@ -132,6 +152,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               if (state === 1) { // PLAYING
                 setIsPlaying(true);
                 setIsBuffering(false);
+                initSilentKeepAlive();
                 if ('mediaSession' in navigator) {
                   navigator.mediaSession.playbackState = 'playing';
                 }
@@ -139,6 +160,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               } else if (state === 2) { // PAUSED
                 setIsPlaying(false);
                 setIsBuffering(false);
+                pauseSilentKeepAlive();
                 if ('mediaSession' in navigator) {
                   navigator.mediaSession.playbackState = 'paused';
                 }
@@ -148,6 +170,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               } else if (state === 0) { // ENDED
                 setIsPlaying(false);
                 setIsBuffering(false);
+                pauseSilentKeepAlive();
                 handleNextSong();
               }
             },
@@ -155,6 +178,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               console.warn('YouTube Player Event Error:', event.data);
               setIsPlaying(false);
               setIsBuffering(false);
+              pauseSilentKeepAlive();
             },
           },
         });
@@ -162,6 +186,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         console.error('Error initializing YouTube iframe player:', err);
       }
     };
+
+    const onVisibilityChange = () => {
+      if (document.hidden && isPlayingRef.current && ytPlayerRef.current) {
+        initSilentKeepAlive();
+        setTimeout(() => {
+          try {
+            ytPlayerRef.current?.playVideo();
+          } catch (_) {}
+        }, 150);
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     if (!(window as any).YT) {
       const existingScript = document.getElementById('youtube-iframe-api');
@@ -179,6 +216,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      pauseSilentKeepAlive();
       releaseWakeLock();
     };
   }, []);
