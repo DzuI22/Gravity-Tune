@@ -212,13 +212,13 @@ export default function HomePage() {
             setSelectedArtist(null);
             setCurrentTab('home');
           }}
-          className="flex items-center gap-2 cursor-pointer group"
+          className="flex items-center gap-2.5 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-xl bg-[#d1e289] text-black flex items-center justify-center font-black text-lg shadow-md shadow-[#d1e289]/20 group-hover:scale-105 transition-transform">
-            7
+          <div className="w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-[#d1e289]/20 group-hover:scale-105 transition-transform flex-shrink-0 border border-white/10">
+            <img src="/logo.png" alt="GravityTune" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-extrabold tracking-tight text-[#ede9dc]">
-            Archive<span className="text-[#d1e289]">Tune</span>
+            Gravity<span className="text-[#d1e289]">Tune</span>
           </span>
         </div>
 
@@ -875,7 +875,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Support ArchiveTune Banner (Photo 1) */}
+                {/* Support GravityTune Banner */}
                 <div
                   onClick={() => {
                     setShowSupportToast(true);
@@ -888,10 +888,10 @@ export default function HomePage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm font-black text-white flex items-center gap-1.5">
-                      Support ArchiveTune ❤️
+                      Support GravityTune ❤️
                     </h4>
                     <p className="text-xs text-white/80 mt-0.5 leading-relaxed">
-                      Love the app? Tap to watch a quick ad and support its development.
+                      Suka dengan aplikasi ini? Ketuk untuk mendukung pengembangan GravityTune.
                     </p>
                   </div>
                   <Play className="w-5 h-5 fill-white flex-shrink-0" />
@@ -928,7 +928,7 @@ export default function HomePage() {
       {/* Support Toast */}
       {showSupportToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#d1e289] text-black font-extrabold text-xs px-5 py-3 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4">
-          Terima kasih atas dukungan Anda terhadap ArchiveTune! ❤️
+          Terima kasih atas dukungan Anda terhadap GravityTune! ❤️
         </div>
       )}
 

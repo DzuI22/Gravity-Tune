@@ -7,17 +7,17 @@ import FullPlayer from '@/components/FullPlayer';
 import PWAInstaller from '@/components/PWAInstaller';
 
 export const metadata: Metadata = {
-  title: 'ArchiveTune - YouTube Music Player',
-  description: 'High-performance YouTube Music web player with ArchiveTune UI — Mood & Genres, Live Lyrics, 2026 Recap, and more.',
+  title: 'GravityTune - Next-Gen Music Player',
+  description: 'Modern audiophile YouTube Music web player with GravityTune UI — Mood & Genres, Live Lyrics, 2026 Recap, and more.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'ArchiveTune',
+    title: 'GravityTune',
   },
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/icon-192.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 };
 

@@ -37,7 +37,7 @@ export default function StatsModal({ isOpen, onClose }: StatsModalProps) {
   const topThumb = currentSong?.thumbnail || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop';
 
   const handleShareCard = async () => {
-    const text = `🎵 My 2026 Music Recap on ArchiveTune:\n⏱️ Total Listen Time: ${minutes} minutes\n⭐ Top Artist: ${topArtist}\n🔥 Top Song: ${topSong}`;
+    const text = `🎵 My 2026 Music Recap on GravityTune:\n⏱️ Total Listen Time: ${minutes} minutes\n⭐ Top Artist: ${topArtist}\n🔥 Top Song: ${topSong}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: '2026 Recap', text });
@@ -227,7 +227,7 @@ export default function StatsModal({ isOpen, onClose }: StatsModalProps) {
                 </div>
 
                 <div className="mt-5 text-[10px] font-bold text-black/50">
-                  ArchiveTune • Powered by GravityTune
+                  GravityTune • 2026 Music Recap
                 </div>
               </div>
 

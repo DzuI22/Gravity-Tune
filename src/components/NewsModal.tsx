@@ -17,7 +17,7 @@ export default function NewsModal({ isOpen, onClose }: NewsModalProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
           <div className="flex items-center gap-2">
             <Newspaper className="w-5 h-5 text-[#d1e289]" />
-            <h3 className="text-base font-extrabold text-[#ede9dc]">ArchiveTune News</h3>
+            <h3 className="text-base font-extrabold text-[#ede9dc]">GravityTune News</h3>
           </div>
           <button
             onClick={onClose}
@@ -36,11 +36,10 @@ export default function NewsModal({ isOpen, onClose }: NewsModalProps) {
               <span className="text-[10px] text-[#9e9a8f]">November 2026</span>
             </div>
             <h4 className="text-sm font-extrabold text-[#ede9dc]">
-              Full ArchiveTune UI & Mobile Experience is Live! 🎉
+              GravityTune v2.5 Experience is Live! 🎉
             </h4>
             <p className="text-[#9e9a8f] leading-relaxed">
-              Selamat datang di pembaruan besar! Tampilan aplikasi kini sepenuhnya mengadopsi desain elegan ArchiveTune
-              lengkap dengan navigasi bawah kapsul, filter mood instan, lirik tersinkronisasi, dan statistik mendengarkan.
+              Selamat datang di pembaruan besar! Tampilan aplikasi kini dilengkapi navigasi bawah kapsul, filter mood instan, lirik karaoke tersinkronisasi, dan statistik mendengarkan.
             </p>
           </div>
 

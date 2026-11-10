@@ -68,7 +68,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="bg-[#1f1c1b] border border-white/5 rounded-2xl p-3 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Moon className="w-4 h-4 text-[#d1e289]" />
-                <span className="font-semibold text-xs">OLED Pure Dark (ArchiveTune)</span>
+                <span className="font-semibold text-xs">OLED Pure Dark</span>
               </div>
               <span className="text-[11px] font-bold text-[#d1e289] bg-[#d1e289]/10 px-2 py-0.5 rounded-full">Active</span>
             </div>
@@ -97,8 +97,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
           {/* About */}
           <div className="bg-[#1f1c1b]/60 border border-white/5 rounded-2xl p-3.5 text-xs space-y-1 text-[#9e9a8f]">
-            <p className="font-bold text-[#ede9dc]">ArchiveTune Web v2.4</p>
-            <p>High performance YouTube Music web player styled after ArchiveTune for Android.</p>
+            <p className="font-bold text-[#ede9dc]">GravityTune Web v2.5</p>
+            <p>High performance YouTube Music web player with next-gen audio engine.</p>
             <p className="text-[10px] text-white/40 pt-1">Free open-source deployment on Vercel</p>
           </div>
         </div>
