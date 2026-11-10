@@ -36,8 +36,11 @@ export default function MiniPlayer() {
     <div className="fixed bottom-3 left-3 right-3 md:left-68 md:right-6 z-30">
       <div
         onClick={() => setIsFullPlayerOpen(true)}
-        className="glass-panel rounded-2xl px-4 py-3 shadow-2xl flex flex-col gap-2 border border-white/10 backdrop-blur-2xl cursor-pointer hover:border-white/20 transition-all"
+        className="glass-panel rounded-2xl px-4 py-3 shadow-2xl flex flex-col gap-2 border border-white/10 backdrop-blur-2xl cursor-pointer hover:border-white/20 transition-all active:scale-[0.99]"
       >
+        {/* Subtle drag indicator on mobile */}
+        <div className="w-10 h-1 bg-white/30 rounded-full mx-auto -mt-1 sm:hidden" />
+
         {/* Progress Bar (interactive slider) */}
         <div
           onClick={(e) => e.stopPropagation()}

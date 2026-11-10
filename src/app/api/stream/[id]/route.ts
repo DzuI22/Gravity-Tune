@@ -16,6 +16,31 @@ const FALLBACK_ENDPOINTS = [
 ];
 
 async function tryFallbackStream(id: string): Promise<string | null> {
+  // 1. Try Cobalt API
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const cobaltRes = await fetch('https://api.cobalt.tools/', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: `https://www.youtube.com/watch?v=${id}`,
+        downloadMode: 'audio',
+        audioFormat: 'best',
+      }),
+    });
+    clearTimeout(timeout);
+    if (cobaltRes.ok) {
+      const data = await cobaltRes.json();
+      if (data.url) return data.url;
+    }
+  } catch (_) {}
+
+  // 2. Try Invidious and Piped endpoints
   for (const endpoint of FALLBACK_ENDPOINTS) {
     try {
       const controller = new AbortController();

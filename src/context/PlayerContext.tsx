@@ -68,6 +68,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const wakeLockRef = useRef<any>(null);
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<any>(null);
+  const userWantsPlayRef = useRef<boolean>(false);
 
   // Avoid stale closures in background callbacks and MediaSession
   const currentSongRef = useRef<Song | null>(null);
@@ -102,6 +103,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setSleepTimerRemaining(prev => {
         if (!prev || prev <= 1) {
           clearInterval(interval);
+          userWantsPlayRef.current = false;
+          pauseSilentKeepAlive();
           ytPlayerRef.current?.pauseVideo();
           setIsPlaying(false);
           setSleepTimerState(null);
@@ -237,13 +240,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                 }
                 requestWakeLock();
               } else if (state === 2) { // PAUSED
-                setIsPlaying(false);
-                setIsBuffering(false);
-                pauseSilentKeepAlive();
-                if ('mediaSession' in navigator) {
-                  navigator.mediaSession.playbackState = 'paused';
+                // Distinguish between intentional user pause vs involuntary browser background suspend
+                if (userWantsPlayRef.current) {
+                  // The browser / Chrome suspended the video due to backgrounding or screen off.
+                  // Keep silent audio loop playing and keep MediaSession active!
+                  initSilentKeepAlive();
+                  if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'playing';
+                  }
+                  // Auto-retry play in background
+                  setTimeout(() => {
+                    if (userWantsPlayRef.current && ytPlayerRef.current) {
+                      try {
+                        ytPlayerRef.current.playVideo();
+                      } catch (_) {}
+                    }
+                  }, 150);
+                } else {
+                  // Intentional pause by user
+                  setIsPlaying(false);
+                  setIsBuffering(false);
+                  pauseSilentKeepAlive();
+                  if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'paused';
+                  }
+                  releaseWakeLock();
                 }
-                releaseWakeLock();
               } else if (state === 3) { // BUFFERING
                 setIsBuffering(true);
               } else if (state === 0) { // ENDED
@@ -267,7 +289,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const onVisibilityChange = () => {
       // If user minimized or switched tab while song was playing, auto-resume playback
-      if (document.hidden && isPlayingRef.current && ytPlayerRef.current) {
+      if (userWantsPlayRef.current && ytPlayerRef.current) {
         initSilentKeepAlive();
         setTimeout(() => {
           try {
@@ -433,11 +455,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.playbackState = 'playing';
 
     navigator.mediaSession.setActionHandler('play', () => {
+      userWantsPlayRef.current = true;
       initSilentKeepAlive();
       ytPlayerRef.current?.playVideo();
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
+      userWantsPlayRef.current = false;
       pauseSilentKeepAlive();
       ytPlayerRef.current?.pauseVideo();
     });
@@ -467,6 +491,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
 
     navigator.mediaSession.setActionHandler('stop', () => {
+      userWantsPlayRef.current = false;
       pauseSilentKeepAlive();
       ytPlayerRef.current?.pauseVideo();
     });
@@ -474,17 +499,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   // 7. Player Control Functions
   const playSong = (song: Song, newQueue?: Song[]) => {
+    userWantsPlayRef.current = true;
+
+    // Auto-open FullPlayer on mobile devices so user immediately sees controls and lyrics!
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsFullPlayerOpen(true);
+    }
+
     // If user clicked the same song that is already active
     if (currentSongRef.current?.id === song.id && ytPlayerRef.current) {
       try {
         const state = ytPlayerRef.current.getPlayerState();
         if (state === 1) { // Playing -> Pause
+          userWantsPlayRef.current = false;
+          pauseSilentKeepAlive();
           ytPlayerRef.current.pauseVideo();
         } else { // Paused -> Play
+          userWantsPlayRef.current = true;
           initSilentKeepAlive();
           ytPlayerRef.current.playVideo();
         }
       } catch (_) {
+        userWantsPlayRef.current = true;
         initSilentKeepAlive();
         ytPlayerRef.current.playVideo();
       }
@@ -524,13 +560,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     try {
       const state = ytPlayerRef.current.getPlayerState();
       if (state === 1) { // Playing -> Pause
+        userWantsPlayRef.current = false;
         pauseSilentKeepAlive();
         ytPlayerRef.current.pauseVideo();
       } else { // Paused -> Play
+        userWantsPlayRef.current = true;
         initSilentKeepAlive();
         ytPlayerRef.current.playVideo();
       }
     } catch (_) {
+      userWantsPlayRef.current = true;
       initSilentKeepAlive();
       ytPlayerRef.current.playVideo();
     }

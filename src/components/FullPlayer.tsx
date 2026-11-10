@@ -148,9 +148,9 @@ export default function FullPlayer() {
       {/* Main Content Area */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-12 py-5 overflow-y-auto max-w-7xl mx-auto w-full items-center">
         {/* Left column: Player Controller Styled Persis Seperti Foto */}
-        <div className="flex flex-col items-center justify-center max-w-md mx-auto w-full space-y-5">
+        <div className="flex flex-col items-center justify-center max-w-md mx-auto w-full space-y-3 sm:space-y-5">
           {/* Album Artwork Cover OR Mobile Lyrics/Queue when toggled */}
-          <div className="relative aspect-square w-full max-w-[240px] sm:max-w-[300px] md:max-w-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 group">
+          <div className="relative aspect-square w-full max-w-[200px] sm:max-w-[280px] md:max-w-[360px] rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 group">
             {mobileTab === 'lyrics' ? (
               <div className="w-full h-full p-4 overflow-y-auto bg-black/60 backdrop-blur-md">
                 <LyricsView />
