@@ -23,9 +23,11 @@ import {
   Loader2,
   X,
   Globe,
+  Bell,
   Radio,
   Check,
-  Shuffle
+  Shuffle,
+  Headphones
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { useAuth } from '@/context/AuthContext';
@@ -41,7 +43,7 @@ import ArtistView from '@/components/ArtistView';
 export default function HomePage() {
   const [currentTab, setCurrentTab] = useState<'home' | 'search' | 'library'>('home');
   const [searchSubTab, setSearchSubTab] = useState<'explore' | 'suggestions'>('explore');
-  const [librarySubTab, setLibrarySubTab] = useState<'library' | 'playlists' | 'songs' | 'artists'>('library');
+  const [librarySubTab, setLibrarySubTab] = useState<'library' | 'playlists' | 'podcast' | 'songs' | 'artists'>('library');
   const [activeLibrarySection, setActiveLibrarySection] = useState<'liked' | 'offline' | 'cached' | 'top50' | null>(null);
 
   // Data states
@@ -238,6 +240,16 @@ export default function HomePage() {
             title="What's New"
           >
             <Newspaper className="w-5 h-5" />
+          </button>
+
+          {/* Alert / Notice Icon */}
+          <button
+            onClick={() => setIsNewsOpen(true)}
+            className="w-10 h-10 rounded-full hover:bg-white/10 active:scale-95 text-[#ede9dc]/80 hover:text-white flex items-center justify-center transition-all relative"
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#d1e289]" />
           </button>
 
           {/* Settings Gear Icon */}
@@ -554,9 +566,9 @@ export default function HomePage() {
              LIBRARY TAB (Matches Photos 1 & 6)
              ======================================================== */
           <div className="space-y-6 animate-in fade-in duration-300">
-            {/* Top Filter Pills: Library, Playlists, Songs, Artists */}
+            {/* Top Filter Pills: Library, Playlists, Podcast, Songs, Artists */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {(['library', 'playlists', 'songs', 'artists'] as const).map(tab => (
+              {(['library', 'playlists', 'podcast', 'songs', 'artists'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => {
@@ -607,8 +619,188 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
+            ) : librarySubTab === 'playlists' ? (
+              /* Playlists View (Photo 6) */
+              <div className="space-y-4">
+                {/* Most Played Card */}
+                <div className="p-4 rounded-3xl bg-[#1f1d1a] border border-white/5 flex items-center justify-between gap-3 shadow-lg">
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                    <img
+                      src={quickPicks[0]?.thumbnail || heroSong.thumbnail}
+                      alt={quickPicks[0]?.title || heroSong.title}
+                      className="w-16 h-16 rounded-2xl object-cover flex-shrink-0 shadow-md"
+                    />
+                    <div className="min-w-0 pr-1">
+                      <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#9e9a8f] mb-0.5">
+                        <Star className="w-3 h-3 fill-[#d1e289] text-[#d1e289]" />
+                        <span>MOST PLAYED</span>
+                      </div>
+                      <h4 className="text-base font-extrabold text-[#ede9dc] truncate">
+                        {quickPicks[0]?.title || heroSong.title}
+                      </h4>
+                      <p className="text-xs text-[#9e9a8f] font-semibold mt-0.5">
+                        {favorites.length > 0 ? `${favorites.length} songs` : '1 song'}
+                      </p>
+                      <button
+                        onClick={() => playSongWithTracking(quickPicks[0] || heroSong, quickPicks)}
+                        className="mt-2.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ede9dc] text-black text-xs font-black hover:bg-[#d1e289] transition-all active:scale-95"
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Play all</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => playSongWithTracking(quickPicks[0] || heroSong, quickPicks)}
+                    className="w-11 h-11 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] text-[#ede9dc]/70 hover:text-white flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
+                    title="Shuffle"
+                  >
+                    <Shuffle className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Your Playlists</h4>
+                  <div
+                    onClick={() => setActiveLibrarySection('liked')}
+                    className="p-3.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                        <Heart className="w-6 h-6 fill-current" />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289]">Liked Songs Playlist</h5>
+                        <p className="text-xs text-[#9e9a8f]">{favorites.length} tracks</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#9e9a8f]" />
+                  </div>
+
+                  <div
+                    onClick={() => setActiveLibrarySection('top50')}
+                    className="p-3.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#d1e289]/20 text-[#d1e289] flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289]">Top 50 All Time</h5>
+                        <p className="text-xs text-[#9e9a8f]">Auto-generated • 50 tracks</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#9e9a8f]" />
+                  </div>
+                </div>
+              </div>
+            ) : librarySubTab === 'podcast' ? (
+              /* Podcast View */
+              <div className="space-y-4">
+                <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Featured Podcasts</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { title: 'Podkesmas', host: 'Imam Darto, Omesh, Surya, Njan', ep: 'Episode 240', img: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=200&h=200&fit=crop' },
+                    { title: 'Kisah Tanah Jawa', host: 'Om Hao & Team', ep: 'Misteri Jalur Selatan', img: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=200&h=200&fit=crop' },
+                    { title: 'Makna Talks', host: 'Iyas Lawrence', ep: 'Episode 185', img: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=200&h=200&fit=crop' },
+                  ].map((pod, i) => (
+                    <div
+                      key={i}
+                      onClick={() => handleSearch(pod.title)}
+                      className="p-3.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center gap-3.5 cursor-pointer group"
+                    >
+                      <img src={pod.img} alt={pod.title} className="w-14 h-14 rounded-xl object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] truncate">{pod.title}</h5>
+                        <p className="text-xs text-[#9e9a8f] truncate">{pod.host}</p>
+                        <span className="text-[10px] font-semibold text-[#d1e289] uppercase tracking-wider">{pod.ep}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : librarySubTab === 'artists' ? (
+              /* Artists View */
+              <div className="space-y-4">
+                <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Followed Artists</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {CURATED_ARTISTS.map(artist => (
+                    <div
+                      key={artist.id}
+                      onClick={() => setSelectedArtist({ id: artist.id, name: artist.name, thumbnail: artist.thumbnail })}
+                      className="p-4 rounded-3xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex flex-col items-center text-center cursor-pointer group transition-all"
+                    >
+                      <img src={artist.thumbnail} alt={artist.name} className="w-20 h-20 rounded-full object-cover mb-2.5 border-2 border-white/10 group-hover:border-[#d1e289] transition-all" />
+                      <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] truncate max-w-full">{artist.name}</h5>
+                      <p className="text-xs text-[#9e9a8f] mt-0.5">Artist</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : librarySubTab === 'songs' ? (
+              /* All Songs / Liked Songs View */
+              <div className="space-y-3">
+                <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">All Songs ({favorites.length || trending.length})</h4>
+                <div className="space-y-2">
+                  {(favorites.length > 0 ? favorites : trending).map((song) => (
+                    <div
+                      key={song.id}
+                      onClick={() => playSongWithTracking(song)}
+                      className="p-3 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
+                    >
+                      <img src={song.thumbnail} className="w-12 h-12 rounded-xl object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-[#ede9dc] truncate group-hover:text-[#d1e289]">
+                          {song.title}
+                        </p>
+                        <p className="text-xs text-[#9e9a8f] truncate">{song.artist}</p>
+                      </div>
+                      <span className="text-xs font-bold text-[#9e9a8f]">
+                        {formatDuration(song.duration)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <>
+                {/* Most Played Card on Library home (Photo 6) */}
+                <div className="p-4 rounded-3xl bg-[#1f1d1a] border border-white/5 flex items-center justify-between gap-3 shadow-lg">
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                    <img
+                      src={quickPicks[0]?.thumbnail || heroSong.thumbnail}
+                      alt={quickPicks[0]?.title || heroSong.title}
+                      className="w-16 h-16 rounded-2xl object-cover flex-shrink-0 shadow-md"
+                    />
+                    <div className="min-w-0 pr-1">
+                      <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#9e9a8f] mb-0.5">
+                        <Star className="w-3 h-3 fill-[#d1e289] text-[#d1e289]" />
+                        <span>MOST PLAYED</span>
+                      </div>
+                      <h4 className="text-base font-extrabold text-[#ede9dc] truncate">
+                        {quickPicks[0]?.title || heroSong.title}
+                      </h4>
+                      <p className="text-xs text-[#9e9a8f] font-semibold mt-0.5">
+                        1 song
+                      </p>
+                      <button
+                        onClick={() => playSongWithTracking(quickPicks[0] || heroSong, quickPicks)}
+                        className="mt-2.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ede9dc] text-black text-xs font-black hover:bg-[#d1e289] transition-all active:scale-95"
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Play all</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => playSongWithTracking(quickPicks[0] || heroSong, quickPicks)}
+                    className="w-11 h-11 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] text-[#ede9dc]/70 hover:text-white flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
+                    title="Shuffle"
+                  >
+                    <Shuffle className="w-5 h-5" />
+                  </button>
+                </div>
+
                 {/* 5 Quick Access Cards (Photo 1) */}
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {/* Liked songs */}
