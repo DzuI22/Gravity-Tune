@@ -975,7 +975,11 @@ export default function HomePage() {
 
       {/* Modals */}
       <StatsModal isOpen={isStatsOpen} onClose={() => setIsStatsOpen(false)} />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onOpenStats={() => setIsStatsOpen(true)}
+      />
       <NewsModal isOpen={isNewsOpen} onClose={() => setIsNewsOpen(false)} />
     </div>
   );
