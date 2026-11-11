@@ -1,0 +1,10 @@
+{
+	"appId": "com.gravitytune.app",
+	"appName": "GravityTune",
+	"webDir": "out",
+	"server": {
+		"url": "https://gravity-tune-three.vercel.app",
+		"cleartext": false,
+		"androidScheme": "https"
+	}
+}
