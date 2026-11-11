@@ -40,7 +40,7 @@
 <hr />
 
 > [!NOTE]
-> **GravityTune** adalah platform pemutar musik YouTube Music mutakhir yang dirancang sebagai Progressive Web Application (PWA) berkecepatan tinggi dengan estetika desain modern, privasi total tanpa pelacak, bebas iklan, dan kualitas streaming Ultra HD. Terinspirasi dari pengalaman UI mobile terbaik (ArchiveTune & Material 3) yang dioptimalkan untuk Smartphone Android/iOS maupun Desktop Browser.
+> **GravityTune** adalah platform pemutar musik YouTube Music mutakhir yang dirancang sebagai Progressive Web Application (PWA) berkecepatan tinggi dengan estetika desain modern, privasi total tanpa pelacak, bebas iklan, dan kualitas streaming Ultra HD. Terinspirasi dari pengalaman UI mobile terbaik yang dioptimalkan untuk Smartphone Android/iOS maupun Desktop Browser.
 
 ---
 
