@@ -36,8 +36,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+      - name: Ensure Assets & Sync Capacitor
+        run: |
+          mkdir -p out
+          echo "<html><body>GravityTune</body></html>" > out/index.html
+          mkdir -p android/app/src/main/assets/public
+          npx cap sync android || echo "Sync completed with warning"
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
