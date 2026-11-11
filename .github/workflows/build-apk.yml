@@ -36,6 +36,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Configure Android SDK Local Properties
+        run: |
+          echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
+          cat android/local.properties
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
@@ -43,14 +48,8 @@ jobs:
         working-directory: android
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
-        run: |
-          set +e
-          ./gradlew assembleDebug --no-daemon > build.log 2>&1
-          EXIT_CODE=$?
-          echo "=== GRADLE LOG START ==="
-          cat build.log
-          echo "=== GRADLE LOG END ==="
-          exit $EXIT_CODE
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Copy APK to output
         run: |
