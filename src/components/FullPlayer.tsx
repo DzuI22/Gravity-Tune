@@ -126,16 +126,28 @@ export default function FullPlayer() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0d0c] text-[#ede9dc] overflow-hidden font-sans select-none animate-in fade-in duration-300">
       
+      {/* Dynamic Ambient Background Glow & Canvas Backdrop */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div 
+          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[140px] opacity-25 mix-blend-screen transition-all duration-1000"
+          style={{ backgroundColor: '#d1e289' }}
+        />
+        <div 
+          className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-[160px] opacity-15 mix-blend-screen transition-all duration-1000"
+          style={{ backgroundColor: '#22c55e' }}
+        />
+      </div>
+
       {/* ========================================================
-          MODE 1: PLAYER BAR UI (PERSIS FOTO 1)
+          MODE 1: PLAYER BAR UI (PERSIS FOTO 1 DENGAN GLASS TOUCH)
           ======================================================== */}
       {viewMode === 'player' && (
-        <div className="relative flex flex-col justify-between h-full max-w-lg mx-auto w-full px-6 py-4 pb-8 animate-in zoom-in-95 duration-200">
+        <div className="relative z-10 flex flex-col justify-between h-full max-w-lg mx-auto w-full px-6 py-4 pb-8 animate-in zoom-in-95 duration-200">
           {/* Top Header: ChevronDown & Now Playing Title */}
           <div className="flex items-center justify-between pt-2">
             <button
               onClick={() => setIsFullPlayerOpen(false)}
-              className="p-2.5 rounded-full hover:bg-white/10 text-[#ede9dc]/70 hover:text-white transition-all active:scale-95"
+              className="p-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.12] backdrop-blur-xl border border-white/10 text-[#ede9dc]/80 hover:text-white transition-all active:scale-95 shadow-lg"
               title="Tutup / Minimize"
             >
               <ChevronDown className="w-6 h-6" />
@@ -153,16 +165,16 @@ export default function FullPlayer() {
             <div className="w-10" /> {/* Spacer */}
           </div>
 
-          {/* Big Album Artwork (Foto 1) */}
+          {/* Big Album Artwork with Glass Frame */}
           <div className="my-auto py-2 flex justify-center">
-            <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[380px] rounded-[32px] overflow-hidden shadow-2xl shadow-black/95 border border-white/10 group">
+            <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[380px] rounded-[36px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.95)] border border-white/15 group">
               <img
                 src={hdThumb}
                 alt={currentSong.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-40 pointer-events-none" />
-              <div className="absolute bottom-4 left-5 right-5 flex justify-between text-xs font-black text-white/80 drop-shadow-md">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-50 pointer-events-none" />
+              <div className="absolute bottom-4 left-5 right-5 flex justify-between text-xs font-black text-white/90 drop-shadow-md">
                 <span className="uppercase tracking-wider">{currentSong.artist}</span>
                 <span className="tracking-wide">{currentSong.title}</span>
               </div>

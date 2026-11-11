@@ -1,9 +1,9 @@
-name: Build Android APK Release
+name: Build Android APK Release v5.1.0
 
 on:
   push:
     branches:
-      - main
+      - v5.1.0
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-android-apk:
-    name: Build & Release GravityTune APK
+    name: Build & Release GravityTune APK v5.1.0
     runs-on: ubuntu-latest
 
     steps:
@@ -55,41 +55,41 @@ jobs:
             APK_PATH=$(find . -name "*.apk" -type f | head -n 1)
           fi
           echo "Using APK found at: $APK_PATH"
-          cp "$APK_PATH" release-files/GravityTune-v2.5.0.apk
+          cp "$APK_PATH" release-files/GravityTune-v5.1.0.apk
           ls -lh release-files/
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GravityTune-Android-APK
-          path: release-files/GravityTune-v2.5.0.apk
+          name: GravityTune-Android-APK-v5.1.0
+          path: release-files/GravityTune-v5.1.0.apk
           retention-days: 30
 
-      - name: Update Official Release
+      - name: Publish Official Release v5.1.0
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.5.0
-          name: "GravityTune v2.5.0 (Official Android APK Release)"
+          tag_name: v5.1.0
+          name: "GravityTune v5.1.0 (Major Release: Glass UI, Podcasts & Community)"
           body: |
-            ## 🎵 GravityTune v2.5.0 - Official Android APK
+            ## 🎵 GravityTune v5.1.0 - Official Android APK (Major Release)
 
-            Aplikasi native Android (APK) murni untuk **GravityTune**!
+            Selamat datang di **GravityTune v5.1.0**! Pembaruan akbar yang membawa antarmuka kaca mutakhir, perpustakaan podcast lengkap, serta pemutaran latar belakang yang kebal jeda.
 
-            ### ✨ Fitur Unggulan di v2.5.0:
-            - **Native Android APK:** Bisa langsung diinstal di HP tanpa perantara browser.
-            - **Bebas Iklan & Background Play:** Streaming jutaan lagu YouTube Music lancar.
-            - **Logo Resmi GravityTune:** Tampilan ikon dan splash screen resmi GravityTune.
-            - **Katalog Album Lengkap:** Telusuri seluruh album artis dan putar semua lagu di dalamnya.
-            - **Full 17 Settings Suite:** Pengaturan kualitas audio, tema OLED, pembersih cache, dan backup JSON.
-            - **Perbaikan Input Search:** Pengetikan dan penghapusan kata kunci lancar tanpa macet.
+            ### ✨ Fitur Unggulan di v5.1.0:
+            - **💎 Liquid Glassmorphism UI:** Desain antarmuka kaca buram (*frosted glass*) dengan animasi transisi pegas super halus.
+            - **🔊 Kebal Background Play & Lock Screen:** Audio tetap bersuara saat layar HP mati dengan kontrol notifikasi responsif.
+            - **🎙️ Dedicated Podcast Library:** Pengelolaan podcast YouTube Music lengkap dengan resume durasi menit terakhir.
+            - **🏠 Featured & Community Playlists:** Eksplorasi playlist buatan komunitas YouTube Music di halaman Home.
+            - **🎨 Immersive Player & Ambient Backdrop:** Pencahayaan latar dinamis menyesuaikan nuansa warna cover lagu.
+            - **⚡ YouTube Engine Hardening:** Pemulihan otomatis saat terjadi kendala stream.
 
-            ### 📲 Cara Pemasangan:
-            1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bawah ini.
+            ### 📲 Cara Pemasangan di HP Android:
+            1. Unduh berkas **`GravityTune-v5.1.0.apk`** di bawah ini.
             2. Izinkan instalasi dari sumber tidak dikenal jika diminta oleh Android.
-            3. Pasang dan nikmati jutaan lagu di GravityTune!
+            3. Pasang dan nikmati pengalaman audio tingkat audiophile!
 
-            > Build Update: ${{ github.sha }}
-          files: release-files/GravityTune-v2.5.0.apk
+            > Build Hash: ${{ github.sha }}
+          files: release-files/GravityTune-v5.1.0.apk
           prerelease: false
           make_latest: true
         env:

@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { useAuth } from '@/context/AuthContext';
-import { Song } from '@/types/music';
+import { Song, PlaylistCard, PodcastEpisode, PodcastShow } from '@/types/music';
 import { CURATED_ARTISTS, CuratedArtist } from '@/data/curatedArtists';
 import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
@@ -49,6 +49,10 @@ export default function HomePage() {
   // Data states
   const [trending, setTrending] = useState<Song[]>([]);
   const [quickPicks, setQuickPicks] = useState<Song[]>([]);
+  const [featuredPlaylists, setFeaturedPlaylists] = useState<PlaylistCard[]>([]);
+  const [communityPlaylists, setCommunityPlaylists] = useState<PlaylistCard[]>([]);
+  const [podcastShows, setPodcastShows] = useState<PodcastShow[]>([]);
+  const [podcastEpisodes, setPodcastEpisodes] = useState<PodcastEpisode[]>([]);
   const [selectedMood, setSelectedMood] = useState<string>('Feel good');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
@@ -81,14 +85,28 @@ export default function HomePage() {
     const fetchCharts = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/charts');
-        if (res.ok) {
-          const data = await res.json();
-          setTrending(data.trending || []);
-          setQuickPicks(data.quickPicks || []);
+        const [chartsRes, commRes, podRes] = await Promise.allSettled([
+          fetch('/api/charts').then(r => r.json()),
+          fetch('/api/community').then(r => r.json()),
+          fetch('/api/podcasts').then(r => r.json()),
+        ]);
+
+        if (chartsRes.status === 'fulfilled') {
+          setTrending(chartsRes.value.trending || []);
+          setQuickPicks(chartsRes.value.quickPicks || []);
+        }
+
+        if (commRes.status === 'fulfilled') {
+          setFeaturedPlaylists(commRes.value.featured || []);
+          setCommunityPlaylists(commRes.value.community || []);
+        }
+
+        if (podRes.status === 'fulfilled') {
+          setPodcastShows(podRes.value.shows || []);
+          setPodcastEpisodes(podRes.value.episodes || []);
         }
       } catch (err) {
-        console.error('Failed to load charts', err);
+        console.error('Failed to load charts and community', err);
       } finally {
         setIsLoading(false);
       }
@@ -412,7 +430,7 @@ export default function HomePage() {
                     onClick={() => playSongWithTracking(song, trending)}
                     className="w-36 sm:w-44 flex-shrink-0 cursor-pointer group"
                   >
-                    <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#1b1917] border border-white/5 shadow-lg mb-2">
+                    <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#1b1917]/80 backdrop-blur-xl border border-white/10 shadow-lg mb-2">
                       <img
                         src={getHdThumbnail(song.thumbnail, song.id)}
                         alt={song.title}
@@ -432,6 +450,73 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+
+            {/* Featured Playlists Cards (v5.1.0 High-End Cards) */}
+            {featuredPlaylists.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Featured Playlists</h3>
+                  <span className="text-xs font-semibold text-[#9e9a8f]">Curated by YouTube Music</span>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+                  {featuredPlaylists.map((pl) => (
+                    <div
+                      key={pl.id}
+                      onClick={() => handleSearch(pl.title)}
+                      className="w-48 sm:w-56 flex-shrink-0 p-3.5 rounded-3xl bg-[#1b1917]/80 backdrop-blur-2xl border border-white/10 hover:border-[#d1e289]/40 transition-all cursor-pointer group shadow-xl active:scale-95"
+                    >
+                      <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 bg-black/40">
+                        <img src={pl.thumbnail} alt={pl.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d1e289] text-black inline-block">
+                            Featured
+                          </span>
+                        </div>
+                      </div>
+                      <h4 className="text-sm font-extrabold text-[#ede9dc] group-hover:text-[#d1e289] truncate">
+                        {pl.title}
+                      </h4>
+                      <p className="text-xs text-[#9e9a8f] truncate mt-0.5 font-medium">
+                        {pl.description || pl.author}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Community Section Feed (v5.1.0 YouTube Community Content) */}
+            {communityPlaylists.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">From the Community</h3>
+                  <span className="text-xs font-semibold text-[#d1e289]">Komunitas & Creator</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {communityPlaylists.map((comm) => (
+                    <div
+                      key={comm.id}
+                      onClick={() => handleSearch(comm.title)}
+                      className="p-3 rounded-2xl bg-[#1b1917]/75 backdrop-blur-xl border border-white/10 hover:border-white/20 flex items-center gap-3.5 cursor-pointer group transition-all active:scale-[0.99]"
+                    >
+                      <img src={comm.thumbnail} alt={comm.title} className="w-14 h-14 rounded-xl object-cover shadow-md flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] truncate">
+                          {comm.title}
+                        </h4>
+                        <p className="text-xs text-[#9e9a8f] truncate mt-0.5">
+                          {comm.author} • {comm.songCount} lagu
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#d1e289] group-hover:text-black text-white/50 flex items-center justify-center transition-all flex-shrink-0">
+                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Keep Listening Circular Artist Avatars (Semua 35+ Artis Lengkap!) */}
             <div className="space-y-3 pt-2">
@@ -742,28 +827,65 @@ export default function HomePage() {
                 </div>
               </div>
             ) : librarySubTab === 'podcast' ? (
-              /* Podcast View */
-              <div className="space-y-4">
-                <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Featured Podcasts</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { title: 'Podkesmas', host: 'Imam Darto, Omesh, Surya, Njan', ep: 'Episode 240', img: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=200&h=200&fit=crop' },
-                    { title: 'Kisah Tanah Jawa', host: 'Om Hao & Team', ep: 'Misteri Jalur Selatan', img: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=200&h=200&fit=crop' },
-                    { title: 'Makna Talks', host: 'Iyas Lawrence', ep: 'Episode 185', img: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=200&h=200&fit=crop' },
-                  ].map((pod, i) => (
-                    <div
-                      key={i}
-                      onClick={() => handleSearch(pod.title)}
-                      className="p-3.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center gap-3.5 cursor-pointer group"
-                    >
-                      <img src={pod.img} alt={pod.title} className="w-14 h-14 rounded-xl object-cover" />
-                      <div className="min-w-0 flex-1">
-                        <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] truncate">{pod.title}</h5>
-                        <p className="text-xs text-[#9e9a8f] truncate">{pod.host}</p>
-                        <span className="text-[10px] font-semibold text-[#d1e289] uppercase tracking-wider">{pod.ep}</span>
+              /* Podcast View (v5.1.0 Full Dedicated Podcast Experience) */
+              <div className="space-y-6">
+                {/* Popular Podcast Shows Carousel */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Top Podcast Shows</h4>
+                    <span className="text-xs font-semibold text-[#d1e289]">YouTube Podcasts</span>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+                    {podcastShows.map((show) => (
+                      <div
+                        key={show.id}
+                        onClick={() => handleSearch(show.title)}
+                        className="w-40 sm:w-48 flex-shrink-0 p-3 rounded-3xl bg-[#1b1917]/80 backdrop-blur-xl border border-white/10 hover:border-[#d1e289]/40 cursor-pointer group transition-all"
+                      >
+                        <img src={show.thumbnail} alt={show.title} className="w-full aspect-square rounded-2xl object-cover mb-2.5 shadow-md group-hover:scale-105 transition-transform" />
+                        <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] truncate">{show.title}</h5>
+                        <p className="text-xs text-[#9e9a8f] truncate mt-0.5">{show.author}</p>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Podcast Episodes Stream with Resume/Duration */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Latest Podcast Episodes</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {podcastEpisodes.map((ep) => (
+                      <div
+                        key={ep.id}
+                        onClick={() => playSongWithTracking({
+                          id: ep.id,
+                          title: ep.title,
+                          artist: ep.author,
+                          thumbnail: ep.thumbnail,
+                          duration: ep.duration,
+                          durationFormatted: ep.durationFormatted,
+                        })}
+                        className="p-3.5 rounded-2xl bg-[#1b1917]/80 backdrop-blur-xl border border-white/10 hover:border-white/20 flex items-center gap-3.5 cursor-pointer group transition-all active:scale-[0.99]"
+                      >
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-black/40">
+                          <img src={ep.thumbnail} alt={ep.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Play className="w-5 h-5 fill-white text-white" />
+                          </div>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h5 className="text-sm font-bold text-[#ede9dc] group-hover:text-[#d1e289] line-clamp-1">{ep.title}</h5>
+                          <p className="text-xs text-[#9e9a8f] truncate mt-0.5">{ep.author}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/10 text-[#d1e289]">
+                              {ep.durationFormatted}
+                            </span>
+                            <span className="text-[10px] text-[#9e9a8f] font-medium">Full Episode</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : librarySubTab === 'artists' ? (
