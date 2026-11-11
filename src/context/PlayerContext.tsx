@@ -69,6 +69,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<any>(null);
   const userWantsPlayRef = useRef<boolean>(false);
+  const isAutoResumingRef = useRef<boolean>(false);
 
   // Avoid stale closures in background callbacks and MediaSession
   const currentSongRef = useRef<Song | null>(null);
@@ -183,7 +184,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const song = currentSongRef.current;
     if (!song || typeof window === 'undefined') return;
     const isNowPlaying = playingState !== undefined ? playingState : isPlayingRef.current;
-    const pos = seekPos !== undefined ? seekPos : (currentTime || 0);
+    let curTime = currentTime || 0;
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
+      try {
+        const ct = ytPlayerRef.current.getCurrentTime();
+        if (typeof ct === 'number' && !isNaN(ct) && ct > 0) curTime = ct;
+      } catch (_) {}
+    }
+    const pos = seekPos !== undefined ? seekPos : curTime;
 
     // 1. Android Native Foreground Notification Bridge
     if ((window as any).GravityNativeBridge?.updateMedia) {
@@ -302,21 +310,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               } else if (state === 2) { // PAUSED
                 // Distinguish between intentional user pause vs involuntary browser background suspend
                 if (userWantsPlayRef.current) {
-                  // The browser / Chrome suspended the video due to backgrounding or screen off.
-                  // Keep silent audio loop playing and keep MediaSession active!
+                  // Involuntary background pause by OS/WebView
                   initSilentKeepAlive();
-                  updateMediaBridge(true);
-                  if ('mediaSession' in navigator) {
-                    navigator.mediaSession.playbackState = 'playing';
+                  if (!isAutoResumingRef.current) {
+                    isAutoResumingRef.current = true;
+                    setTimeout(() => {
+                      isAutoResumingRef.current = false;
+                      if (userWantsPlayRef.current && ytPlayerRef.current) {
+                        try {
+                          ytPlayerRef.current.playVideo();
+                        } catch (_) {}
+                      }
+                    }, 250);
                   }
-                  // Auto-retry play in background
-                  setTimeout(() => {
-                    if (userWantsPlayRef.current && ytPlayerRef.current) {
-                      try {
-                        ytPlayerRef.current.playVideo();
-                      } catch (_) {}
-                    }
-                  }, 100);
                 } else {
                   // Intentional pause by user
                   setIsPlaying(false);

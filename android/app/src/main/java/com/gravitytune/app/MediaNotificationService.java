@@ -188,7 +188,7 @@ public class MediaNotificationService extends Service {
                 PlaybackState.ACTION_SKIP_TO_PREVIOUS |
                 PlaybackState.ACTION_SEEK_TO
             )
-            .setState(isPlaying ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, currentPosition, 1.0f);
+            .setState(isPlaying ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, currentPosition, isPlaying ? 1.0f : 0.0f);
         mediaSession.setPlaybackState(stateBuilder.build());
 
         // Update MediaSession Metadata

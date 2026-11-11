@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -20,10 +21,23 @@ public class MainActivity extends BridgeActivity {
     private AudioManager audioManager;
     private AudioFocusRequest audioFocusRequest;
 
+    public void keepWebViewAlive() {
+        try {
+            WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
+            if (webView != null) {
+                // Force Chromium to treat the window as VISIBLE to prevent background video/audio pausing
+                webView.dispatchWindowVisibilityChanged(View.VISIBLE);
+                webView.resumeTimers();
+                webView.onResume();
+            }
+        } catch (Exception ignored) {}
+    }
+
     public static void sendJsCommand(String js) {
         if (instance != null) {
             instance.runOnUiThread(() -> {
                 try {
+                    instance.keepWebViewAlive();
                     WebView webView = instance.bridge != null ? instance.bridge.getWebView() : null;
                     if (webView != null) {
                         webView.evaluateJavascript(js, null);
@@ -58,6 +72,9 @@ public class MainActivity extends BridgeActivity {
                 WebSettings settings = webView.getSettings();
                 settings.setMediaPlaybackRequiresUserGesture(false);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setDatabaseEnabled(true);
                 webView.addJavascriptInterface(new AudioBridgeInterface(), "GravityNativeBridge");
             }
 
@@ -91,25 +108,20 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         super.onPause();
-        // Prevent webview or HTML5 timers/audio from being suspended when minimized
-        try {
-            WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
-            if (webView != null) {
-                webView.onResume();
-            }
-        } catch (Exception ignored) {
-        }
+        keepWebViewAlive();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        try {
-            WebView webView = this.bridge != null ? this.bridge.getWebView() : null;
-            if (webView != null) {
-                webView.onResume();
-            }
-        } catch (Exception ignored) {
+        keepWebViewAlive();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus) {
+            keepWebViewAlive();
         }
     }
 
