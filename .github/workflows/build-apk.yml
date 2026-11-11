@@ -26,22 +26,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Create Native Android Project (TWA WebAPK)
+      - name: Create Native Android Project & Build APK
         run: |
           mkdir -p android-project
           cd android-project
-          
-          # Install bubblewrap CLI
-          npm install @bubblewrap/cli
-          
+
+          # Install Bubblewrap CLI
+          npm install -g @bubblewrap/cli
+
           # Create twa-manifest.json directly
           cat << 'EOF' > twa-manifest.json
           {
@@ -88,8 +85,8 @@ jobs:
             "isMetaQuest": false
           }
           EOF
-          
-          # Generate signing keystore
+
+          # Generate release keystore
           keytool -genkeypair -v \
             -keystore android.keystore \
             -alias gravitytune \
@@ -100,11 +97,20 @@ jobs:
             -keypass "gravitytune123" \
             -dname "CN=GravityTune, OU=App, O=GravityTune, L=Jakarta, C=ID"
 
-          # Download logo for android icons
+          # Download app logo
           curl -sL "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png" -o icon.png
 
-          # Generate native Android project from manifest
-          npx @bubblewrap/cli build --skipPwaValidation || true
+          # Point Bubblewrap to preinstalled Android SDK & JDK on ubuntu-latest
+          mkdir -p ~/.bubblewrap
+          cat << EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${ANDROID_HOME}"
+          }
+          EOF
+
+          # Build APK
+          bubblewrap build --skipPwaValidation || true
 
       - name: Locate and Organize Output APK
         run: |
@@ -131,15 +137,16 @@ jobs:
             
             Aplikasi murni Android (APK) untuk **GravityTune**!
             
-            ### ✨ Apa yang baru di v2.5.0:
-            - **Native Android APK:** Bisa langsung diinstal di semua perangkat Android.
-            - **Katalog Album Lengkap:** Buka album apa saja dan putar semua lagu di dalamnya.
-            - **Full 17 Settings Suite:** Pengaturan kualitas audio, tema OLED, manajemen cache, dan backup data.
-            - **Fix Search Bug:** Pengetikan dan penghapusan kata kunci kini 100% mulus.
+            ### ✨ Fitur Unggulan di v2.5.0:
+            - **Native Android APK:** Bisa langsung diinstal di HP tanpa perantara browser.
+            - **Bebas Iklan & Background Play:** Streaming jutaan lagu YouTube Music lancar.
+            - **Katalog Album Lengkap:** Telusuri seluruh album artis dan putar semua lagu di dalamnya.
+            - **Full 17 Settings Suite:** Pengaturan kualitas audio, tema OLED, pembersih cache, dan backup JSON.
+            - **Perbaikan Input Search:** Pengetikan dan penghapusan kata kunci lancar.
             
-            ### 📲 Cara Pemasangan di HP:
-            1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bagian **Assets** di bawah.
-            2. Ketuk file yang diunduh untuk menginstal di smartphone Android Anda.
+            ### 📲 Cara Pemasangan:
+            1. Unduh file **`GravityTune-v2.5.0.apk`** di bawah ini.
+            2. Buka file di HP Android Anda dan klik **Install**.
           files: output-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
