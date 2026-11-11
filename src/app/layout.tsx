@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import MiniPlayer from '@/components/MiniPlayer';
 import FullPlayer from '@/components/FullPlayer';
 import PWAInstaller from '@/components/PWAInstaller';
+import UpdateChecker from '@/components/UpdateChecker';
 
 export const metadata: Metadata = {
   title: 'GravityTune - Next-Gen Music Player',
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MiniPlayer />
             <FullPlayer />
             <PWAInstaller />
+            <UpdateChecker />
           </PlayerProvider>
         </AuthProvider>
       </body>
