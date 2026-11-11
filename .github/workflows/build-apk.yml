@@ -26,20 +26,25 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'cmdline-tools;latest platforms;android-34 build-tools;34.0.0'
+
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Initialize Android TWA Project
+      - name: Generate Android APK via Bubblewrap CLI
         run: |
-          mkdir -p android-project
-          cd android-project
+          mkdir -p twa-app
+          cd twa-app
 
           # Install Bubblewrap CLI
           npm install -g @bubblewrap/cli
 
-          # Point Bubblewrap to preinstalled Android SDK & JDK on ubuntu-latest
+          # Setup Bubblewrap config
           mkdir -p ~/.bubblewrap
           cat << EOF > ~/.bubblewrap/config.json
           {
@@ -48,54 +53,7 @@ jobs:
           }
           EOF
 
-          # Create twa-manifest.json
-          cat << 'EOF' > twa-manifest.json
-          {
-            "packageId": "com.gravitytune.app",
-            "host": "gravity-tune-three.vercel.app",
-            "name": "GravityTune",
-            "launcherName": "GravityTune",
-            "display": "standalone",
-            "themeColor": "#0e0d0c",
-            "themeColorDark": "#0e0d0c",
-            "navigationColor": "#131211",
-            "navigationColorDark": "#131211",
-            "navigationDividerColor": "#00000000",
-            "navigationDividerColorDark": "#00000000",
-            "backgroundColor": "#0e0d0c",
-            "enableNotifications": true,
-            "startUrl": "/",
-            "iconUrl": "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png",
-            "maskableIconUrl": "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png",
-            "splashScreenFadeOutDuration": 300,
-            "signingKey": {
-              "path": "./android.keystore",
-              "alias": "gravitytune"
-            },
-            "appVersionName": "2.5.0",
-            "appVersionCode": 250,
-            "shortcuts": [],
-            "generatorApp": "bubblewrap-cli",
-            "webManifestUrl": "https://gravity-tune-three.vercel.app/manifest.json",
-            "fallbackType": "customtabs",
-            "features": {
-              "locationDelegation": {
-                "enabled": false
-              },
-              "playBilling": {
-                "enabled": false
-              }
-            },
-            "alphaDependencies": {
-              "enabled": false
-            },
-            "enableSiteSettingsShortcut": true,
-            "isChromeOSOnly": false,
-            "isMetaQuest": false
-          }
-          EOF
-
-          # Generate release keystore
+          # Create keystore
           keytool -genkeypair -v \
             -keystore android.keystore \
             -alias gravitytune \
@@ -106,40 +64,37 @@ jobs:
             -keypass "gravitytune123" \
             -dname "CN=GravityTune, OU=App, O=GravityTune, L=Jakarta, C=ID"
 
-          # Download app logo
+          # Download high-res logo
           curl -sL "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png" -o icon.png
 
-          # Generate Android Gradle Project from manifest
-          bubblewrap build --skipPwaValidation || true
+          # Initialize Bubblewrap using manifest
+          bubblewrap init \
+            --manifest="https://gravity-tune-three.vercel.app/manifest.json" \
+            --directory=.
 
-          # If gradle project generated, run gradlew assembleRelease
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleRelease || ./gradlew assembleDebug
-          fi
+          # Update signing config in twa-manifest.json
+          sed -i 's/"path": ".*"/"path": ".\/android.keystore"/' twa-manifest.json
+          sed -i 's/"alias": ".*"/"alias": "gravitytune"/' twa-manifest.json
 
-          echo "Listing all generated files:"
+          # Build APK with automatic signing
+          echo "gravitytune123" | bubblewrap build --skipPwaValidation
+
+          echo "Search for APK in twa-app:"
           find . -name "*.apk"
 
-      - name: Locate and Organize Output APK
+      - name: Organize Output APK
         run: |
-          mkdir -p output-apk
-          # Search for any built apk files
-          find android-project -name "*.apk" -exec cp -v {} output-apk/GravityTune-v2.5.0.apk \;
+          mkdir -p release-files
+          find twa-app -name "*.apk" -exec cp -v {} release-files/GravityTune-v2.5.0.apk \;
           
-          # Verification check
-          if [ ! -f "output-apk/GravityTune-v2.5.0.apk" ]; then
-            echo "Searching in whole workspace:"
-            find . -name "*.apk" -exec cp -v {} output-apk/GravityTune-v2.5.0.apk \;
-          fi
-          
-          ls -lh output-apk/
+          # Check size
+          ls -lh release-files/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: GravityTune-Android-APK
-          path: output-apk/*.apk
+          path: release-files/GravityTune-v2.5.0.apk
           retention-days: 30
 
       - name: Publish to GitHub Releases
@@ -163,6 +118,6 @@ jobs:
             ### 📲 Cara Pemasangan:
             1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bawah ini.
             2. Buka berkas di smartphone Android Anda dan pilih **Install**.
-          files: output-apk/GravityTune-v2.5.0.apk
+          files: release-files/GravityTune-v2.5.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
