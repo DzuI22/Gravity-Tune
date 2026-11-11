@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Create Native Android Project & Build APK
+      - name: Initialize Android TWA Project
         run: |
           mkdir -p android-project
           cd android-project
@@ -39,7 +39,16 @@ jobs:
           # Install Bubblewrap CLI
           npm install -g @bubblewrap/cli
 
-          # Create twa-manifest.json directly
+          # Point Bubblewrap to preinstalled Android SDK & JDK on ubuntu-latest
+          mkdir -p ~/.bubblewrap
+          cat << EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${ANDROID_HOME}"
+          }
+          EOF
+
+          # Create twa-manifest.json
           cat << 'EOF' > twa-manifest.json
           {
             "packageId": "com.gravitytune.app",
@@ -100,24 +109,31 @@ jobs:
           # Download app logo
           curl -sL "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png" -o icon.png
 
-          # Point Bubblewrap to preinstalled Android SDK & JDK on ubuntu-latest
-          mkdir -p ~/.bubblewrap
-          cat << EOF > ~/.bubblewrap/config.json
-          {
-            "jdkPath": "${JAVA_HOME}",
-            "androidSdkPath": "${ANDROID_HOME}"
-          }
-          EOF
-
-          # Build APK
+          # Generate Android Gradle Project from manifest
           bubblewrap build --skipPwaValidation || true
+
+          # If gradle project generated, run gradlew assembleRelease
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleRelease || ./gradlew assembleDebug
+          fi
+
+          echo "Listing all generated files:"
+          find . -name "*.apk"
 
       - name: Locate and Organize Output APK
         run: |
           mkdir -p output-apk
           # Search for any built apk files
           find android-project -name "*.apk" -exec cp -v {} output-apk/GravityTune-v2.5.0.apk \;
-          ls -la output-apk/
+          
+          # Verification check
+          if [ ! -f "output-apk/GravityTune-v2.5.0.apk" ]; then
+            echo "Searching in whole workspace:"
+            find . -name "*.apk" -exec cp -v {} output-apk/GravityTune-v2.5.0.apk \;
+          fi
+          
+          ls -lh output-apk/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -145,8 +161,8 @@ jobs:
             - **Perbaikan Input Search:** Pengetikan dan penghapusan kata kunci lancar.
             
             ### 📲 Cara Pemasangan:
-            1. Unduh file **`GravityTune-v2.5.0.apk`** di bawah ini.
-            2. Buka file di HP Android Anda dan klik **Install**.
-          files: output-apk/*.apk
+            1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bawah ini.
+            2. Buka berkas di smartphone Android Anda dan pilih **Install**.
+          files: output-apk/GravityTune-v2.5.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
