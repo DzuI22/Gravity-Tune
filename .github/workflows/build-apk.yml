@@ -43,7 +43,14 @@ jobs:
         working-directory: android
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          set +e
+          ./gradlew assembleDebug --no-daemon > build.log 2>&1
+          EXIT_CODE=$?
+          echo "=== GRADLE LOG START ==="
+          cat build.log
+          echo "=== GRADLE LOG END ==="
+          exit $EXIT_CODE
 
       - name: Copy APK to output
         run: |
