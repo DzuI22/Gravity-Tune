@@ -44,26 +44,23 @@ jobs:
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-        run: |
-          ./gradlew assembleDebug --no-daemon -x lint 2>&1 | tee ../gradle_output.txt
-
-      - name: Upload Build Log if Failed
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-failure-log
-          path: gradle_output.txt
+        run: ./gradlew assembleDebug --no-daemon -x lint
 
       - name: Copy APK to output
         run: |
           mkdir -p release-files
-          APK_PATH=$(find android -name "*.apk" -type f | head -n 1)
+          echo "=== LISTING APK DIRECTORY ==="
+          ls -laR android/app/build/outputs/apk || true
+          
+          # Find APK anywhere in runner workspace
+          APK_PATH=$(find . -name "*.apk" -type f | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            echo "ERROR: No APK found after build!"
-            exit 1
+            echo "Searching all storage for apk..."
+            APK_PATH=$(find /home/runner/work -name "*.apk" -type f | head -n 1)
           fi
-          echo "Found APK: $APK_PATH"
-          cp "$APK_PATH" release-files/GravityTune-v2.5.0.apk
+          
+          echo "Using APK at: $APK_PATH"
+          cp -v "$APK_PATH" release-files/GravityTune-v2.5.0.apk
           ls -lh release-files/
 
       - name: Upload APK as Artifact
