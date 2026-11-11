@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { useAuth } from '@/context/AuthContext';
+import { useVersion } from '@/context/VersionContext';
 import { Song, PlaylistCard, PodcastEpisode, PodcastShow } from '@/types/music';
 import { CURATED_ARTISTS, CuratedArtist } from '@/data/curatedArtists';
 import { formatDuration, getHdThumbnail } from '@/lib/utils';
@@ -70,6 +71,7 @@ export default function HomePage() {
 
   const { favorites, playSong, isPlaying, currentSong, togglePlay } = usePlayer();
   const { addRecentSong, user } = useAuth();
+  const { version, setVersion, isV5, versionName } = useVersion();
 
   const playSongWithTracking = (song: Song, playlist?: Song[]) => {
     playSong(song, playlist);
@@ -239,9 +241,23 @@ export default function HomePage() {
           <div className="w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-[#d1e289]/20 group-hover:scale-105 transition-transform flex-shrink-0 border border-white/10">
             <img src="/logo.png" alt="GravityTune" className="w-full h-full object-cover" />
           </div>
-          <span className="text-xl font-extrabold tracking-tight text-[#ede9dc]">
-            Gravity<span className="text-[#d1e289]">Tune</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-extrabold tracking-tight text-[#ede9dc]">
+              Gravity<span className="text-[#d1e289]">Tune</span>
+            </span>
+            {/* Version Badge Switcher */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setVersion(isV5 ? '2.5.0' : '5.1.0');
+              }}
+              title={`Klik untuk berganti versi (Aktif: v${version}). Klik untuk pindah ke v${isV5 ? '2.5.0' : '5.1.0'}`}
+              className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide uppercase transition-all active:scale-90 border shadow-sm flex items-center gap-1 bg-[#1a1816] hover:bg-white/10 text-[#d1e289] border-[#d1e289]/40 hover:border-[#d1e289]"
+            >
+              <span>v{version}</span>
+              <span className="text-[8px] text-white/50 lowercase">({isV5 ? 'v5' : 'v2'})</span>
+            </button>
+          </div>
         </div>
 
         {/* Desktop Navigation Tabs (Home, Search, Library) - Hanya tampil di PC/Laptop */}
@@ -451,8 +467,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Featured Playlists Cards (v5.1.0 High-End Cards) */}
-            {featuredPlaylists.length > 0 && (
+            {/* Featured Playlists Cards (Hanya Tampil di Mode v5.1.0) */}
+            {isV5 && featuredPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Featured Playlists</h3>
@@ -486,8 +502,8 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Community Section Feed (v5.1.0 YouTube Community Content) */}
-            {communityPlaylists.length > 0 && (
+            {/* Community Section Feed (Hanya Tampil di Mode v5.1.0) */}
+            {isV5 && communityPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">From the Community</h3>

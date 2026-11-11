@@ -37,6 +37,7 @@ import {
   FileText
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
+import { useVersion } from '@/context/VersionContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose, onOpenStats }: SettingsModalProps) {
+  const { version, setVersion, isV5, versionName } = useVersion();
   // Navigation: null = Root list; string = Active Subview ID
   const [activeSubView, setActiveSubView] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -1279,9 +1281,45 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                 </div>
                 <div>
                   <h3 className="text-xl font-extrabold text-[#ede9dc]">GravityTune</h3>
-                  <p className="text-xs text-[#d1e289] font-bold mt-1">v2.5.0-stable (Web &amp; PWA)</p>
+                  <p className="text-xs text-[#d1e289] font-bold mt-1">v{version} (Active Mode)</p>
                   <p className="text-xs text-[#9e9a8f] max-w-xs mx-auto mt-2 leading-relaxed">
                     Audiophile YouTube Music client dengan UI premium terinspirasi dari ArchiveTune dan Material 3.
+                  </p>
+                </div>
+
+                {/* Switcher Mode Versi Interaktif */}
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex flex-col gap-2 text-left">
+                  <span className="text-xs font-bold text-[#ede9dc]">Mode Versi Aplikasi:</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        setVersion('2.5.0');
+                        setToastMessage('Beralih ke mode v2.5.0 (Klasik)');
+                      }}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all ${
+                        version === '2.5.0'
+                          ? 'bg-[#d1e289] text-black border-[#d1e289]'
+                          : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      v2.5.0 (Klasik)
+                    </button>
+                    <button
+                      onClick={() => {
+                        setVersion('5.1.0');
+                        setToastMessage('Beralih ke mode v5.1.0 (Akbar)');
+                      }}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all ${
+                        version === '5.1.0'
+                          ? 'bg-[#d1e289] text-black border-[#d1e289]'
+                          : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      v5.1.0 (Glass)
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[#9e9a8f] mt-1">
+                    Saat ini aktif: <strong>{versionName}</strong>
                   </p>
                 </div>
               </div>

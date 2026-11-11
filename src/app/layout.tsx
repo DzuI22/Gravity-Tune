@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { PlayerProvider } from '@/context/PlayerContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { VersionProvider } from '@/context/VersionContext';
 import MiniPlayer from '@/components/MiniPlayer';
 import FullPlayer from '@/components/FullPlayer';
 import PWAInstaller from '@/components/PWAInstaller';
@@ -34,15 +35,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id">
       <body className="antialiased min-h-screen bg-[#0e0d0c] text-[#ede9dc] selection:bg-[#d1e289] selection:text-black">
-        <AuthProvider>
-          <PlayerProvider>
-            {children}
-            <MiniPlayer />
-            <FullPlayer />
-            <PWAInstaller />
-            <UpdateChecker />
-          </PlayerProvider>
-        </AuthProvider>
+        <VersionProvider>
+          <AuthProvider>
+            <PlayerProvider>
+              {children}
+              <MiniPlayer />
+              <FullPlayer />
+              <PWAInstaller />
+              <UpdateChecker />
+            </PlayerProvider>
+          </AuthProvider>
+        </VersionProvider>
       </body>
     </html>
   );
