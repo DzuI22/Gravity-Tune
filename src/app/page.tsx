@@ -115,8 +115,12 @@ export default function HomePage() {
 
   // Search handler
   const handleSearch = async (query: string) => {
-    if (!query.trim()) return;
     setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
     setIsSearching(true);
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=song`);
@@ -458,23 +462,34 @@ export default function HomePage() {
              SEARCH & EXPLORE TAB (Matches Photos 2 & 4)
              ======================================================== */
           <div className="space-y-6 animate-in fade-in duration-300">
-            {/* Search Bar with Globe Icon */}
+            {/* Search Bar with Globe Icon & Clear Button */}
             <div className="relative w-full">
               <input
                 type="text"
                 placeholder="Search YouTube Music"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full py-3.5 pl-12 pr-12 rounded-full bg-[#1b1917] border border-white/10 text-sm font-semibold text-[#ede9dc] placeholder-[#9e9a8f] focus:outline-none focus:border-[#d1e289] transition-all shadow-inner"
+                className="w-full py-3.5 pl-12 pr-20 rounded-full bg-[#1b1917] border border-white/10 text-sm font-semibold text-[#ede9dc] placeholder-[#9e9a8f] focus:outline-none focus:border-[#d1e289] transition-all shadow-inner"
               />
               <Search className="w-5 h-5 text-[#9e9a8f] absolute left-4 top-1/2 -translate-y-1/2" />
-              <button
-                onClick={() => handleSearch('Top Global Music')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9e9a8f] hover:text-white"
-                title="Global"
-              >
-                <Globe className="w-5 h-5" />
-              </button>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {searchQuery && (
+                  <button
+                    onClick={() => handleSearch('')}
+                    className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-[#9e9a8f] hover:text-white transition-all active:scale-90"
+                    title="Hapus pencarian"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleSearch('Top Global Music')}
+                  className="p-1 text-[#9e9a8f] hover:text-white transition-colors"
+                  title="Global"
+                >
+                  <Globe className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Subtabs: Explore & Suggestions (Photo 2) */}

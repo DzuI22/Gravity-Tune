@@ -18,3 +18,12 @@ export interface LyricsData {
   lines: LyricLine[];
   plain?: string;
 }
+
+export interface Album {
+  id: string;
+  title: string;
+  year?: string;
+  type?: string;
+  thumbnail: string;
+  trackCount?: number;
+}
