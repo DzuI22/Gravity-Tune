@@ -32,9 +32,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Configure Android SDK Local Properties
+      - name: Configure Android SDK Local Properties & Licenses
         run: |
           echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
@@ -49,18 +50,12 @@ jobs:
       - name: Copy APK to output
         run: |
           mkdir -p release-files
-          echo "=== LISTING APK DIRECTORY ==="
-          ls -laR android/app/build/outputs/apk || true
-          
-          # Find APK anywhere in runner workspace
-          APK_PATH=$(find . -name "*.apk" -type f | head -n 1)
+          APK_PATH=$(find android -name "*.apk" -type f | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            echo "Searching all storage for apk..."
-            APK_PATH=$(find /home/runner/work -name "*.apk" -type f | head -n 1)
+            APK_PATH=$(find . -name "*.apk" -type f | head -n 1)
           fi
-          
-          echo "Using APK at: $APK_PATH"
-          cp -v "$APK_PATH" release-files/GravityTune-v2.5.0.apk
+          echo "Using APK found at: $APK_PATH"
+          cp "$APK_PATH" release-files/GravityTune-v2.5.0.apk
           ls -lh release-files/
 
       - name: Upload APK as Artifact
