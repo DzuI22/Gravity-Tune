@@ -452,18 +452,30 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       ],
     });
 
-    navigator.mediaSession.playbackState = 'playing';
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
     navigator.mediaSession.setActionHandler('play', () => {
       userWantsPlayRef.current = true;
       initSilentKeepAlive();
-      ytPlayerRef.current?.playVideo();
+      if (ytPlayerRef.current) {
+        ytPlayerRef.current.playVideo();
+      }
+      setIsPlaying(true);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+      }
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
       userWantsPlayRef.current = false;
       pauseSilentKeepAlive();
-      ytPlayerRef.current?.pauseVideo();
+      if (ytPlayerRef.current) {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setIsPlaying(false);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {

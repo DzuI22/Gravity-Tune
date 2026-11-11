@@ -60,7 +60,7 @@ export default function MiniPlayer() {
       <div className="md:hidden fixed bottom-[68px] left-3 right-3 z-40 max-w-md mx-auto animate-in slide-in-from-bottom-3 duration-300">
         <div
           onClick={() => setIsFullPlayerOpen(true)}
-          className="bg-[#131211] border border-white/10 rounded-3xl shadow-[0_12px_45px_rgba(0,0,0,0.98)] flex flex-col cursor-pointer hover:border-[#d1e289]/50 transition-all duration-300 active:scale-[0.99] group overflow-hidden"
+          className="bg-[#131211]/85 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-[0_12px_45px_rgba(0,0,0,0.95)] flex flex-col cursor-pointer hover:border-[#d1e289]/60 transition-all duration-300 active:scale-[0.98] group overflow-hidden"
         >
           {/* Main Row */}
           <div className="flex items-center justify-between gap-3 p-2.5">
