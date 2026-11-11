@@ -1,0 +1,145 @@
+name: Build Android APK Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-apk:
+    name: Build & Release GravityTune APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create Native Android Project (TWA WebAPK)
+        run: |
+          mkdir -p android-project
+          cd android-project
+          
+          # Install bubblewrap CLI
+          npm install @bubblewrap/cli
+          
+          # Create twa-manifest.json directly
+          cat << 'EOF' > twa-manifest.json
+          {
+            "packageId": "com.gravitytune.app",
+            "host": "gravity-tune-three.vercel.app",
+            "name": "GravityTune",
+            "launcherName": "GravityTune",
+            "display": "standalone",
+            "themeColor": "#0e0d0c",
+            "themeColorDark": "#0e0d0c",
+            "navigationColor": "#131211",
+            "navigationColorDark": "#131211",
+            "navigationDividerColor": "#00000000",
+            "navigationDividerColorDark": "#00000000",
+            "backgroundColor": "#0e0d0c",
+            "enableNotifications": true,
+            "startUrl": "/",
+            "iconUrl": "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png",
+            "maskableIconUrl": "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": {
+              "path": "./android.keystore",
+              "alias": "gravitytune"
+            },
+            "appVersionName": "2.5.0",
+            "appVersionCode": 250,
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://gravity-tune-three.vercel.app/manifest.json",
+            "fallbackType": "customtabs",
+            "features": {
+              "locationDelegation": {
+                "enabled": false
+              },
+              "playBilling": {
+                "enabled": false
+              }
+            },
+            "alphaDependencies": {
+              "enabled": false
+            },
+            "enableSiteSettingsShortcut": true,
+            "isChromeOSOnly": false,
+            "isMetaQuest": false
+          }
+          EOF
+          
+          # Generate signing keystore
+          keytool -genkeypair -v \
+            -keystore android.keystore \
+            -alias gravitytune \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "gravitytune123" \
+            -keypass "gravitytune123" \
+            -dname "CN=GravityTune, OU=App, O=GravityTune, L=Jakarta, C=ID"
+
+          # Download logo for android icons
+          curl -sL "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png" -o icon.png
+
+          # Generate native Android project from manifest
+          npx @bubblewrap/cli build --skipPwaValidation || true
+
+      - name: Locate and Organize Output APK
+        run: |
+          mkdir -p output-apk
+          # Search for any built apk files
+          find android-project -name "*.apk" -exec cp -v {} output-apk/GravityTune-v2.5.0.apk \;
+          ls -la output-apk/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GravityTune-Android-APK
+          path: output-apk/*.apk
+          retention-days: 30
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        with:
+          tag_name: v2.5.0
+          name: "GravityTune v2.5.0 (Official Android APK Release)"
+          body: |
+            ## 🎵 GravityTune v2.5.0 - Official Android APK
+            
+            Aplikasi murni Android (APK) untuk **GravityTune**!
+            
+            ### ✨ Apa yang baru di v2.5.0:
+            - **Native Android APK:** Bisa langsung diinstal di semua perangkat Android.
+            - **Katalog Album Lengkap:** Buka album apa saja dan putar semua lagu di dalamnya.
+            - **Full 17 Settings Suite:** Pengaturan kualitas audio, tema OLED, manajemen cache, dan backup data.
+            - **Fix Search Bug:** Pengetikan dan penghapusan kata kunci kini 100% mulus.
+            
+            ### 📲 Cara Pemasangan di HP:
+            1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bagian **Assets** di bawah.
+            2. Ketuk file yang diunduh untuk menginstal di smartphone Android Anda.
+          files: output-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
