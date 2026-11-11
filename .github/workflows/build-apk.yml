@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -28,96 +26,68 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'cmdline-tools;latest platforms;android-34 build-tools;34.0.0'
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
 
-      - name: Generate Android APK via Bubblewrap CLI
+      - name: Build Debug APK (no signing needed)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Find APK file
         run: |
-          mkdir -p twa-app
-          cd twa-app
+          echo "=== Searching for APK files ==="
+          find android -name "*.apk" -type f
+          echo "=============================="
 
-          # Install Bubblewrap CLI
-          npm install -g @bubblewrap/cli
-
-          # Setup Bubblewrap config
-          mkdir -p ~/.bubblewrap
-          cat << EOF > ~/.bubblewrap/config.json
-          {
-            "jdkPath": "${JAVA_HOME}",
-            "androidSdkPath": "${ANDROID_HOME}"
-          }
-          EOF
-
-          # Create keystore
-          keytool -genkeypair -v \
-            -keystore android.keystore \
-            -alias gravitytune \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass "gravitytune123" \
-            -keypass "gravitytune123" \
-            -dname "CN=GravityTune, OU=App, O=GravityTune, L=Jakarta, C=ID"
-
-          # Download high-res logo
-          curl -sL "https://raw.githubusercontent.com/DzuI22/Gravity-Tune/main/public/logo.png" -o icon.png
-
-          # Initialize Bubblewrap using manifest
-          bubblewrap init \
-            --manifest="https://gravity-tune-three.vercel.app/manifest.json" \
-            --directory=.
-
-          # Update signing config in twa-manifest.json
-          sed -i 's/"path": ".*"/"path": ".\/android.keystore"/' twa-manifest.json
-          sed -i 's/"alias": ".*"/"alias": "gravitytune"/' twa-manifest.json
-
-          # Build APK with automatic signing
-          echo "gravitytune123" | bubblewrap build --skipPwaValidation
-
-          echo "Search for APK in twa-app:"
-          find . -name "*.apk"
-
-      - name: Organize Output APK
+      - name: Copy APK to output
         run: |
           mkdir -p release-files
-          find twa-app -name "*.apk" -exec cp -v {} release-files/GravityTune-v2.5.0.apk \;
-          
-          # Check size
+          APK_PATH=$(find android -name "*.apk" -type f | head -1)
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: No APK found!"
+            exit 1
+          fi
+          echo "Found APK: $APK_PATH"
+          cp "$APK_PATH" release-files/GravityTune-v2.5.0.apk
           ls -lh release-files/
 
-      - name: Upload Artifact
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: GravityTune-Android-APK
           path: release-files/GravityTune-v2.5.0.apk
           retention-days: 30
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v2.5.0
-          name: "GravityTune v2.5.0 (Official Android APK Release)"
+          tag_name: "v2.5.0-${{ steps.date.outputs.date }}"
+          name: "GravityTune v2.5.0 - Android APK"
           body: |
             ## 🎵 GravityTune v2.5.0 - Official Android APK
-            
+
             Aplikasi murni Android (APK) untuk **GravityTune**!
-            
+
             ### ✨ Fitur Unggulan di v2.5.0:
             - **Native Android APK:** Bisa langsung diinstal di HP tanpa perantara browser.
             - **Bebas Iklan & Background Play:** Streaming jutaan lagu YouTube Music lancar.
             - **Katalog Album Lengkap:** Telusuri seluruh album artis dan putar semua lagu di dalamnya.
             - **Full 17 Settings Suite:** Pengaturan kualitas audio, tema OLED, pembersih cache, dan backup JSON.
             - **Perbaikan Input Search:** Pengetikan dan penghapusan kata kunci lancar.
-            
+
             ### 📲 Cara Pemasangan:
             1. Unduh berkas **`GravityTune-v2.5.0.apk`** di bawah ini.
-            2. Buka berkas di smartphone Android Anda dan pilih **Install**.
+            2. Izinkan "Install dari sumber tidak dikenal" di pengaturan Android.
+            3. Buka berkas APK dan pilih **Install**.
+
+            > Build: ${{ github.sha }} | ${{ steps.date.outputs.date }}
           files: release-files/GravityTune-v2.5.0.apk
+          prerelease: false
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
