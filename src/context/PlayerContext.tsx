@@ -151,15 +151,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
       silentAudioRef.current?.play().catch(() => {});
 
-      // Also trigger WebAudio oscillator keep-alive
+      // WebAudio oscillator keep-alive at inaudible gain
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!audioCtxRef.current && AudioCtx) {
         const ctx = new AudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(20, ctx.currentTime);
-        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        osc.frequency.setValueAtTime(40, ctx.currentTime);
+        gain.gain.setValueAtTime(0.00001, ctx.currentTime);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -177,6 +177,65 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audioCtxRef.current.suspend().catch(() => {});
     }
   };
+
+  // Bridge notification to Native Android Service and MediaSession
+  const updateMediaBridge = (playingState?: boolean, seekPos?: number) => {
+    const song = currentSongRef.current;
+    if (!song || typeof window === 'undefined') return;
+    const isNowPlaying = playingState !== undefined ? playingState : isPlayingRef.current;
+    const pos = seekPos !== undefined ? seekPos : (currentTime || 0);
+
+    // 1. Android Native Foreground Notification Bridge
+    if ((window as any).GravityNativeBridge?.updateMedia) {
+      try {
+        (window as any).GravityNativeBridge.updateMedia(
+          song.title || 'GravityTune',
+          song.artist || 'Unknown Artist',
+          song.thumbnail || '',
+          isNowPlaying,
+          Math.floor((song.duration || 0) * 1000),
+          Math.floor(pos * 1000)
+        );
+      } catch (_) {}
+    }
+
+    // 2. Browser MediaSession API
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = isNowPlaying ? 'playing' : 'paused';
+      } catch (_) {}
+    }
+  };
+
+  // Spoof document visibility so YouTube iframe NEVER pauses when minimized or screen turned off
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      Object.defineProperty(document, 'hidden', {
+        get: () => false,
+        configurable: true,
+      });
+      Object.defineProperty(document, 'visibilityState', {
+        get: () => 'visible',
+        configurable: true,
+      });
+    } catch (_) {}
+
+    const preventBackgroundPause = (e: Event) => {
+      if (userWantsPlayRef.current) {
+        e.stopImmediatePropagation();
+      }
+    };
+
+    window.addEventListener('visibilitychange', preventBackgroundPause, true);
+    document.addEventListener('visibilitychange', preventBackgroundPause, true);
+
+    return () => {
+      window.removeEventListener('visibilitychange', preventBackgroundPause, true);
+      document.removeEventListener('visibilitychange', preventBackgroundPause, true);
+    };
+  }, []);
 
   // Acquire WakeLock when playing
   const requestWakeLock = async () => {
@@ -235,6 +294,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                 setIsPlaying(true);
                 setIsBuffering(false);
                 initSilentKeepAlive();
+                updateMediaBridge(true);
                 if ('mediaSession' in navigator) {
                   navigator.mediaSession.playbackState = 'playing';
                 }
@@ -245,6 +305,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                   // The browser / Chrome suspended the video due to backgrounding or screen off.
                   // Keep silent audio loop playing and keep MediaSession active!
                   initSilentKeepAlive();
+                  updateMediaBridge(true);
                   if ('mediaSession' in navigator) {
                     navigator.mediaSession.playbackState = 'playing';
                   }
@@ -255,12 +316,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                         ytPlayerRef.current.playVideo();
                       } catch (_) {}
                     }
-                  }, 150);
+                  }, 100);
                 } else {
                   // Intentional pause by user
                   setIsPlaying(false);
                   setIsBuffering(false);
                   pauseSilentKeepAlive();
+                  updateMediaBridge(false);
                   if ('mediaSession' in navigator) {
                     navigator.mediaSession.playbackState = 'paused';
                   }
@@ -682,6 +744,34 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const isFavorite = (songId: string) => {
     return favorites.some(s => s.id === songId);
   };
+
+  // Expose global window hooks for Android Native Notification and Lock Screen controls
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    (window as any).gravityTuneTogglePlay = () => togglePlay();
+    (window as any).gravityTunePlay = () => {
+      userWantsPlayRef.current = true;
+      initSilentKeepAlive();
+      ytPlayerRef.current?.playVideo();
+      setIsPlaying(true);
+      updateMediaBridge(true);
+    };
+    (window as any).gravityTunePause = () => {
+      userWantsPlayRef.current = false;
+      pauseSilentKeepAlive();
+      ytPlayerRef.current?.pauseVideo();
+      setIsPlaying(false);
+      updateMediaBridge(false);
+    };
+    (window as any).gravityTuneNext = () => handleNextSong();
+    (window as any).gravityTunePrev = () => handlePrevSong();
+    (window as any).gravityTuneSeek = (sec: number) => seek(sec);
+  }, [currentSong, queue, isPlaying]);
+
+  // Sync native notification when currentSong or isPlaying changes
+  useEffect(() => {
+    updateMediaBridge();
+  }, [currentSong, isPlaying]);
 
   return (
     <PlayerContext.Provider
