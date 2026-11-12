@@ -1457,7 +1457,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                     Tambah / Ganti Akun
                   </h3>
                   <p className="text-xs text-[#9e9a8f] mt-1 leading-relaxed">
-                    Data login akan otomatis dicatat ke Google Sheets Anda. Pilih apakah ingin masuk dengan Akun Google atau membuat profil Guest baru.
+                    Pilih apakah Anda ingin masuk menggunakan Akun Google atau membuat profil Guest baru.
                   </p>
                 </div>
 
@@ -1515,7 +1515,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                       className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-xs font-bold hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20"
                     >
                       <GoogleIcon className="w-4 h-4" />
-                      {isSubmittingAccount ? 'Menyimpan ke Google Sheets...' : 'Masuk dengan Akun Google'}
+                      {isSubmittingAccount ? 'Menyimpan Akun...' : 'Masuk dengan Akun Google'}
                     </button>
                   </div>
                 ) : (
@@ -1536,7 +1536,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                       className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
                     >
                       <User className="w-4 h-4" />
-                      {isSubmittingAccount ? 'Menyimpan ke Google Sheets...' : 'Buat & Masuk Akun Guest'}
+                      {isSubmittingAccount ? 'Menyimpan Akun...' : 'Buat & Masuk Akun Guest'}
                     </button>
                   </div>
                 )}
@@ -1610,28 +1610,20 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                 </div>
               </div>
 
-              {/* 4. Google Sheets Integration Card */}
+              {/* 4. Keamanan & Sinkronisasi Cloud */}
               <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white/70 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Google Sheets Terhubung
+                    Sinkronisasi Cloud Aktif
                   </span>
-                  <a
-                    href="https://docs.google.com/spreadsheets/d/1lzV20IjHlxJCW76reGVO9Nwibw0CRXt1K2jif2iyF2M/edit"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] font-bold text-teal-400 hover:underline flex items-center gap-1"
-                  >
-                    Buka Spreadsheet <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <span className="text-[11px] font-semibold text-emerald-400/80">
+                    Terhubung Aman
+                  </span>
                 </div>
-                <div className="p-3 bg-black/40 rounded-2xl border border-white/5 space-y-1.5 text-xs text-[#9e9a8f]">
-                  <p className="font-semibold text-white/80">Struktur Data Otomatis:</p>
-                  <p>• <strong>Kolom A:</strong> Username Akun Guest</p>
-                  <p>• <strong>Kolom C:</strong> Email Akun Google</p>
-                  <p>• <strong>Kolom D:</strong> Username Akun Google</p>
-                </div>
+                <p className="text-xs text-[#9e9a8f] leading-relaxed">
+                  Data profil dan sesi Anda terenkripsi dan disinkronkan secara aman ke server basis data cloud untuk memastikan riwayat pemutaran dan akun tetap tersimpan.
+                </p>
                 {recordStatus && (
                   <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-300 text-xs font-medium flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-teal-400 flex-shrink-0" />

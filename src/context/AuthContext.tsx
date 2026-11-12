@@ -140,13 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveState(updatedProfile, updatedAccounts);
     setShowAuthModal(false);
 
-    // Record login to Google Sheet Column A
-    setRecordStatus('Menyimpan ke Google Sheets...');
+    // Record login to Google Sheet Column A in background
+    setRecordStatus('Menyimpan sesi akun...');
     const ok = await recordLoginToSheet({
       type: 'guest',
       username: guestName,
     });
-    setRecordStatus(ok ? 'Tersimpan di Google Sheets!' : 'Gagal sinkron Google Sheets');
+    setRecordStatus(ok ? 'Sesi akun tersimpan!' : null);
     setTimeout(() => setRecordStatus(null), 3000);
   };
 
@@ -174,14 +174,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveState(updatedProfile, updatedAccounts);
     setShowAuthModal(false);
 
-    // Record login to Google Sheet Column C (Email) & Column D (Username)
-    setRecordStatus('Menyimpan ke Google Sheets...');
+    // Record login to Google Sheet Column C (Email) & Column D (Username) in background
+    setRecordStatus('Menyinkronkan akun...');
     const ok = await recordLoginToSheet({
       type: 'google',
       email: email.trim(),
       username: googleName,
     });
-    setRecordStatus(ok ? 'Tersimpan di Google Sheets!' : 'Gagal sinkron Google Sheets');
+    setRecordStatus(ok ? 'Akun berhasil terhubung!' : null);
     setTimeout(() => setRecordStatus(null), 3000);
   };
 

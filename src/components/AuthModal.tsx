@@ -94,7 +94,7 @@ export default function AuthModal() {
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-white text-sm">Masuk dengan Akun Google</p>
                 <p className="text-xs text-white/50 mt-0.5">
-                  Tersinkronisasi & tercatat ke Google Sheets
+                  Tersinkronisasi & tersimpan di cloud
                 </p>
               </div>
               <ArrowRight className="w-5 h-5 text-white/40 ml-auto group-hover:text-white transition-colors" />
@@ -132,7 +132,7 @@ export default function AuthModal() {
               </div>
               <h2 className="text-base font-bold text-white">Login Akun Google</h2>
               <p className="text-xs text-white/40 mt-0.5">
-                Data akan tersimpan otomatis ke Google Sheets
+                Sinkronkan favorit dan riwayat akun Anda
               </p>
             </div>
 
@@ -194,7 +194,7 @@ export default function AuthModal() {
               </div>
               <h2 className="text-base font-bold text-white">Profil Guest</h2>
               <p className="text-xs text-white/40 mt-0.5">
-                Username akan dicatat ke kolom Akun Guest di Google Sheets
+                Gunakan nama samaran pilihan Anda untuk mode tamu
               </p>
             </div>
 
