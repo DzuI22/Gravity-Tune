@@ -43,6 +43,7 @@ import { usePlayer } from '@/context/PlayerContext';
 import { useVersion } from '@/context/VersionContext';
 import { useAuth } from '@/context/AuthContext';
 import LyricsAndCanvasControls from './LyricsAndCanvasControls';
+import GoogleSignInPage from './GoogleSignInPage';
 
 function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
@@ -74,7 +75,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose, onOpenStats }: SettingsModalProps) {
-  const { version, setVersion, isV5, versionName } = useVersion();
+  const { version, setVersion, isV5, isV7, versionName } = useVersion();
   // Navigation: null = Root list; string = Active Subview ID
   const [activeSubView, setActiveSubView] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -100,6 +101,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
   const [newGoogleName, setNewGoogleName] = useState('');
   const [newGuestName, setNewGuestName] = useState('');
   const [isSubmittingAccount, setIsSubmittingAccount] = useState(false);
+  const [isGoogleSignInOpen, setIsGoogleSignInOpen] = useState(false);
 
   const handleAddGoogleAccount = async () => {
     if (!newGoogleEmail.trim()) {
@@ -325,7 +327,9 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0d0c] text-[#ede9dc] overflow-hidden font-sans select-none animate-in slide-in-from-right duration-200">
       
-      {/* Toast Notification */}
+      <GoogleSignInPage isOpen={isGoogleSignInOpen} onClose={() => setIsGoogleSignInOpen(false)} />
+
+        {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-[#ede9dc] text-black px-5 py-3 rounded-2xl font-bold text-xs shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-4">
           <Check className="w-4 h-4 text-emerald-600" />
@@ -1033,7 +1037,8 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
               </div>
 
               {/* v7.5.3 Lyrics Animation & Canvas Backdrop Suite */}
-              <LyricsAndCanvasControls
+              {isV7 && (
+                <LyricsAndCanvasControls
                 bounceAmplitude={bounceAmplitude}
                 setBounceAmplitude={setBounceAmplitude}
                 glowIntensity={glowIntensity}
@@ -1049,7 +1054,8 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                 highRefreshRate144={highRefreshRate144}
                 setHighRefreshRate144={setHighRefreshRate144}
                 showToast={showToast}
-              />
+                />
+              )}
             </div>
           )}
 

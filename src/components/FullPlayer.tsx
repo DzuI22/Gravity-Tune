@@ -28,10 +28,12 @@ import {
   Sparkles
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
+import { useVersion } from '@/context/VersionContext';
 import { formatDuration, getHdThumbnail } from '@/lib/utils';
 import SleepLockOverlay from './SleepLockOverlay';
 
 export default function FullPlayer() {
+  const { isV7 } = useVersion();
   const {
     currentSong,
     isPlaying,
@@ -248,16 +250,18 @@ export default function FullPlayer() {
                       <Moon className="w-4 h-4 text-indigo-400" />
                       <span>Timer Tidur</span>
                     </button>
-                    <button
-                      onClick={() => {
-                        setIsSleepLockOpen(true);
-                        setIsMoreMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl hover:bg-white/10 flex items-center gap-2.5 text-white"
-                    >
-                      <Lock className="w-4 h-4 text-[#d1e289]" />
-                      <span>Mode Layar Tidur (OLED)</span>
-                    </button>
+                    {isV7 && (
+                      <button
+                        onClick={() => {
+                          setIsSleepLockOpen(true);
+                          setIsMoreMenuOpen(false);
+                        }}
+                        className="w-full text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl hover:bg-white/10 flex items-center gap-2.5 text-white"
+                      >
+                        <Lock className="w-4 h-4 text-[#d1e289]" />
+                        <span>Mode Layar Tidur (OLED)</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

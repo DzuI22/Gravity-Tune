@@ -9,50 +9,39 @@ if (!fs.existsSync(readmePath)) {
 
 let content = fs.readFileSync(readmePath, 'utf8');
 
-// New release row for v7.5.3
-const newVersionRow = '| **[GravityTune-v7.5.3.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v7.5.3/GravityTune-v7.5.3.apk)** | `v7.5.3` | `com.gravitytune.v7` | ~5.8 MB | Warm Amber OLED, Apple Music Lyrics, Sleep Mode, Standalone App |';
+// Update Header Badge
+content = content.replace(
+  /https:\/\/img\.shields\.io\/badge\/Version-v[0-9.]+-d1e289/,
+  'https://img.shields.io/badge/Version-v7.5.3-d1e289'
+);
 
-// Check if already updated
-if (!content.includes('GravityTune-v7.5.3.apk')) {
-  // Update Header Badges
-  content = content.replace(
-    /https:\/\/img\.shields\.io\/badge\/Version-v[0-9.]+-d1e289/,
-    'https://img.shields.io/badge/Version-v7.5.3-d1e289'
-  );
-
-  // Update Download Table
-  const tableHeader = '| Tautan Unduh | Versi |';
-  if (content.includes(tableHeader)) {
-    const tableRegex = /\| Tautan Unduh \| Versi \|[^\n]*\n\| :--- \| :--- \|[^\n]*\n(\| [^\n]+\n)*/;
-    const newTable = `| Tautan Unduh | Versi | Package ID | Ukuran | Catatan Rilis |
+// Unified Download Table with common Package ID com.gravitytune.app
+const tableHeader = '| Tautan Unduh | Versi |';
+if (content.includes(tableHeader)) {
+  const tableRegex = /\| Tautan Unduh \| Versi \|[^\n]*\n\| :--- \| :--- \|[^\n]*\n(\| [^\n]+\n)*/;
+  const newTable = `| Tautan Unduh | Versi | Application ID | Tipe Instalasi | Catatan Rilis |
 | :--- | :--- | :--- | :--- | :--- |
-| **[GravityTune-v7.5.3.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v7.5.3/GravityTune-v7.5.3.apk)** | \`v7.5.3\` | \`com.gravitytune.v7\` | ~5.8 MB | **Rilis Terbaru!** Standalone App, Warm Amber OLED, Apple Music Lyrics, In-App Sleep Mode |
-| **[GravityTune-v5.1.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v5.1.0/GravityTune-v5.1.0.apk)** | \`v5.1.0\` | \`com.gravitytune.v5\` | ~5.5 MB | Liquid Glassmorphism, Podcast Library, YouTube Music Community |
-| **[GravityTune-v2.5.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v2.5.0/GravityTune-v2.5.0.apk)** | \`v2.5.0\` | \`com.gravitytune.v2\` | ~5.3 MB | Classic Ultra Lightweight, Audio Crossfade, EBU Normalization |
+| **[GravityTune-v7.5.3.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v7.5.3/GravityTune-v7.5.3.apk)** | \`v7.5.3\` | \`com.gravitytune.app\` | **Direct Update (Menimpa Versi Lama)** | Warm Amber OLED, Apple Music Synced Lyrics, In-App Sleep Mode, Authentic Google Sign-in |
+| **[GravityTune-v5.1.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v5.1.0/GravityTune-v5.1.0.apk)** | \`v5.1.0\` | \`com.gravitytune.app\` | Official Stable Release | Liquid Glassmorphism UI, Dedicated Podcast Library, Community Feeds |
+| **[GravityTune-v2.5.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v2.5.0/GravityTune-v2.5.0.apk)** | \`v2.5.0\` | \`com.gravitytune.app\` | Legacy Lightweight | Ultra Lightweight Audio Stream, Gapless Playback |
 `;
-    content = content.replace(tableRegex, newTable);
-  }
+  content = content.replace(tableRegex, newTable);
+}
 
-  // Add Standalone Version Comparison Section if not present
-  if (!content.includes('## 📱 Format APK Mandiri & Komparasi Versi')) {
-    const comparisonSection = `
+// Update Installation & In-App Upgrade Note
+const updateNote = `
 ---
 
-## 📱 Format APK Mandiri & Komparasi Versi
+## 🔄 Pembaruan Mulus (Seamless Update System)
 
-Setiap versi GravityTune memiliki **Application ID (Package Name) terpisah** sehingga Anda dapat menginstal semua versi sekaligus di satu HP Android tanpa saling menimpa:
-
-| Versi | Application ID (Gradle) | Nama di Layar HP | File APK | Sorotan Utama |
-| :--- | :--- | :--- | :--- | :--- |
-| **v7.5.3** | \`com.gravitytune.v7\` | **GravityTune v7.5.3** | \`GravityTune-v7.5.3.apk\` | Warm Amber OLED, Apple Music Synced Lyrics, In-App Sleep Mode, Canvas Video Backdrop |
-| **v5.1.0** | \`com.gravitytune.v5\` | **GravityTune v5.1** | \`GravityTune-v5.1.0.apk\` | Liquid Glassmorphism UI, Podcast Library, YouTube Community Playlists |
-| **v2.5.0** | \`com.gravitytune.v2\` | **GravityTune v2.5** | \`GravityTune-v2.5.0.apk\` | Classic Ultra Lightweight, InnerTube Engine, Gapless Playback |
+Semua rilis GravityTune menggunakan **Application ID resmi yang seragam (\`com.gravitytune.app\`)**.
+- Jika Anda memasang versi terbaru di atas versi sebelumnya (misal dari v2.5.0 atau v5.1.0 ke v7.5.3), sistem Android akan memunculkan dialog resmi **"Do you want to update this app?"**.
+- Semua data playlist, akun, dan lagu favorit Anda tetap aman dan otomatis terbawa ke versi terbaru tanpa perlu menghapus aplikasi lama atau membuat duplikat aplikasi di smartphone.
 `;
-    content = content.replace('## ✨ Features Unggulan di v2.5.0', `${comparisonSection}\n## ✨ Features Unggulan di v7.5.3 & Rilis Sebelumnya`);
-  }
 
-  fs.writeFileSync(readmePath, content, 'utf8');
-  console.log('Successfully updated README.md for v7.5.3');
-} else {
-  console.log('README.md is already up to date with v7.5.3');
+if (!content.includes('## 🔄 Pembaruan Mulus (Seamless Update System)')) {
+  content = content.replace('## ✨ Features Unggulan', `${updateNote}\n## ✨ Features Unggulan`);
 }
+
+fs.writeFileSync(readmePath, content, 'utf8');
+console.log('Successfully updated README.md with unified update notes!');

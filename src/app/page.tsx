@@ -71,7 +71,7 @@ export default function HomePage() {
 
   const { favorites, playSong, isPlaying, currentSong, togglePlay } = usePlayer();
   const { addRecentSong, user } = useAuth();
-  const { version, setVersion, isV5, versionName } = useVersion();
+  const { version, setVersion, isV5, isV7, versionName } = useVersion();
 
   const playSongWithTracking = (song: Song, playlist?: Song[]) => {
     playSong(song, playlist);
@@ -468,7 +468,7 @@ export default function HomePage() {
             </div>
 
             {/* Featured Playlists Cards (Hanya Tampil di Mode v5.1.0) */}
-            {featuredPlaylists.length > 0 && (
+            {(isV5 || isV7) && featuredPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Featured Playlists</h3>
@@ -503,7 +503,7 @@ export default function HomePage() {
             )}
 
             {/* Community Section Feed (Hanya Tampil di Mode v5.1.0) */}
-            {communityPlaylists.length > 0 && (
+            {(isV5 || isV7) && communityPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">From the Community</h3>
@@ -716,11 +716,11 @@ export default function HomePage() {
           <div className="space-y-6 animate-in fade-in duration-300">
             {/* Top Filter Pills: Library, Playlists, Podcast, Songs, Artists */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {(['library', 'playlists', 'podcast', 'songs', 'artists'] as const).map(tab => (
+              {((!isV5 && !isV7) ? ['library', 'playlists', 'songs', 'artists'] : ['library', 'playlists', 'podcast', 'songs', 'artists']).map(tab => (
                 <button
                   key={tab}
                   onClick={() => {
-                    setLibrarySubTab(tab);
+                    setLibrarySubTab(tab as any);
                     setActiveLibrarySection(null);
                   }}
                   className={`px-4 py-2 rounded-2xl text-xs font-bold capitalize whitespace-nowrap transition-all active:scale-95 border ${

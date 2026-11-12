@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, Sparkles, CheckCircle2, X, ExternalLink } from 'lucide-react';
+import { Download, Sparkles, CheckCircle2, X } from 'lucide-react';
+import { useVersion } from '@/context/VersionContext';
 
-interface UpdateCheckerProps {
-  currentVersion?: string;
-}
+export default function UpdateChecker() {
+  const { version } = useVersion();
+  const currentTag = `v${version}`;
 
-export default function UpdateChecker({ currentVersion = 'v5.1.0' }: UpdateCheckerProps) {
   const [latestRelease, setLatestRelease] = useState<{
     tagName: string;
     name: string;
@@ -27,16 +27,14 @@ export default function UpdateChecker({ currentVersion = 'v5.1.0' }: UpdateCheck
         if (res.ok) {
           const data = await res.json();
           const tag = data.tag_name;
-          // If there's a valid release and tag is different/newer
           const apkAsset = data.assets?.find((a: any) => a.name?.endsWith('.apk'));
-          if (apkAsset && tag && tag !== currentVersion) {
+          if (apkAsset && tag && tag !== currentTag) {
             setLatestRelease({
               tagName: tag,
               name: data.name || tag,
               apkUrl: apkAsset.browser_download_url,
               body: data.body || '',
             });
-            // Show popup if not dismissed before
             const dismissedTag = localStorage.getItem('gravity_dismissed_update');
             if (dismissedTag !== tag) {
               setIsOpen(true);
@@ -47,7 +45,7 @@ export default function UpdateChecker({ currentVersion = 'v5.1.0' }: UpdateCheck
     };
 
     checkUpdates();
-  }, [currentVersion]);
+  }, [currentTag]);
 
   const handleDismiss = () => {
     setIsOpen(false);
@@ -72,7 +70,7 @@ export default function UpdateChecker({ currentVersion = 'v5.1.0' }: UpdateCheck
                 Update Tersedia: {latestRelease.tagName}
               </h4>
               <p className="text-xs text-[#9e9a8f] font-medium mt-0.5">
-                Versi baru GravityTune telah dirilis!
+                Versi Anda ({currentTag}) dapat diperbarui!
               </p>
             </div>
           </div>
@@ -92,13 +90,13 @@ export default function UpdateChecker({ currentVersion = 'v5.1.0' }: UpdateCheck
             className="flex-1 py-2 px-3 rounded-full bg-[#d1e289] text-black text-xs font-black flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all shadow-md shadow-[#d1e289]/20"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Unduh APK Terbaru</span>
+            <span>Perbarui Aplikasi Sekarang</span>
           </a>
           <button
             onClick={handleDismiss}
             className="py-2 px-3 rounded-full bg-white/5 hover:bg-white/10 text-xs font-semibold text-[#ede9dc] transition-all"
           >
-            Nanti Saja
+            Nanti
           </button>
         </div>
       </div>
