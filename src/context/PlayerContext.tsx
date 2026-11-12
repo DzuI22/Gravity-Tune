@@ -36,6 +36,8 @@ interface PlayerContextType {
   isFavorite: (songId: string) => boolean;
   setIsFullPlayerOpen: (open: boolean) => void;
   setIsLyricsOpen: (open: boolean) => void;
+  sponsorBlockEnabled: boolean;
+  setSponsorBlockEnabled: (v: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -61,7 +63,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
   const [sleepTimer, setSleepTimerState] = useState<number | null>(null);
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
+  const [sponsorBlockEnabled, setSponsorBlockEnabledState] = useState<boolean>(true);
 
+  const sponsorSegmentsRef = useRef<{ start: number; end: number }[]>([]);
+  const lastSkippedSegmentRef = useRef<number>(-1);
   const ytPlayerRef = useRef<any>(null);
   const isYtReadyRef = useRef<boolean>(false);
   const pendingSongRef = useRef<Song | null>(null);
@@ -479,6 +484,47 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch (_) {}
   }, [currentSong]);
 
+  // ArchiveTune 15.1.0 Feature: SponsorBlock Auto-Skip Non-Music Segments
+  useEffect(() => {
+    if (!currentSong || typeof window === 'undefined') {
+      sponsorSegmentsRef.current = [];
+      return;
+    }
+
+    const fetchSponsorBlock = async () => {
+      try {
+        const saved = localStorage.getItem('gravity_sponsorblock_enabled');
+        if (saved !== null) {
+          setSponsorBlockEnabledState(saved === 'true');
+        }
+
+        const res = await fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${currentSong.id}&categories=["music_offtopic","sponsor","selfpromo","intro","outro"]`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            sponsorSegmentsRef.current = data.map((item: any) => ({
+              start: item.segment[0],
+              end: item.segment[1],
+            }));
+          }
+        } else {
+          sponsorSegmentsRef.current = [];
+        }
+      } catch (_) {
+        sponsorSegmentsRef.current = [];
+      }
+    };
+
+    fetchSponsorBlock();
+  }, [currentSong]);
+
+  const setSponsorBlockEnabled = (val: boolean) => {
+    setSponsorBlockEnabledState(val);
+    try {
+      localStorage.setItem('gravity_sponsorblock_enabled', val.toString());
+    } catch (_) {}
+  };
+
   // 5. Fetch lyrics when song changes
   useEffect(() => {
     if (!currentSong) {
@@ -815,6 +861,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isFavorite,
         setIsFullPlayerOpen,
         setIsLyricsOpen,
+        sponsorBlockEnabled,
+        setSponsorBlockEnabled,
       }}
     >
       {children}

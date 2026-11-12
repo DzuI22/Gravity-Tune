@@ -194,7 +194,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
   const [debugLogConsole, setDebugLogConsole] = useState(false);
   const [useFastStream, setUseFastStream] = useState(true);
 
-  const { favorites } = usePlayer();
+  const { favorites, sponsorBlockEnabled, setSponsorBlockEnabled } = usePlayer();
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -951,6 +951,32 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                     className="w-5 h-5 accent-[#d1e289] cursor-pointer"
                   />
                 </div>
+
+                {/* ArchiveTune 15.1.0 SponsorBlock Feature (Eksklusif v7.5.3) */}
+                {isV7 && (
+                  <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                    <div className="min-w-0 flex-1 pr-3">
+                      <p className="text-sm font-bold text-[#ede9dc] flex items-center gap-1.5">
+                        <span>SponsorBlock Auto-Skip</span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#d1e289] text-black">
+                          v7.5.3
+                        </span>
+                      </p>
+                      <p className="text-xs text-[#9e9a8f] mt-0.5">
+                        Otomatis melewati bagian non-musik seperti intro, sponsor, outro, dan percakapan video
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={sponsorBlockEnabled}
+                      onChange={(e) => {
+                        setSponsorBlockEnabled(e.target.checked);
+                        showToast(e.target.checked ? 'SponsorBlock aktif' : 'SponsorBlock nonaktif');
+                      }}
+                      className="w-5 h-5 accent-[#d1e289] cursor-pointer"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

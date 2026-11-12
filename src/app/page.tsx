@@ -40,6 +40,7 @@ import StatsModal from '@/components/StatsModal';
 import SettingsModal from '@/components/SettingsModal';
 import NewsModal from '@/components/NewsModal';
 import ArtistView from '@/components/ArtistView';
+import SpotifyImportModal from '@/components/SpotifyImportModal';
 
 export default function HomePage() {
   const [currentTab, setCurrentTab] = useState<'home' | 'search' | 'library'>('home');
@@ -66,6 +67,7 @@ export default function HomePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewsOpen, setIsNewsOpen] = useState(false);
   const [showSupportToast, setShowSupportToast] = useState(false);
+  const [isSpotifyImportOpen, setIsSpotifyImportOpen] = useState(false);
 
   const localFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -808,7 +810,18 @@ export default function HomePage() {
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider px-1">Your Playlists</h4>
+                  <div className="flex items-center justify-between px-1">
+                    <h4 className="text-sm font-extrabold text-[#9e9a8f] uppercase tracking-wider">Your Playlists</h4>
+                    {isV7 && (
+                      <button
+                        onClick={() => setIsSpotifyImportOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1DB954]/20 hover:bg-[#1DB954]/30 text-[#1DB954] text-xs font-bold border border-[#1DB954]/30 active:scale-95 transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Import Spotify</span>
+                      </button>
+                    )}
+                  </div>
                   <div
                     onClick={() => setActiveLibrarySection('liked')}
                     className="p-3.5 rounded-2xl bg-[#1b1917] hover:bg-[#252220] border border-white/5 flex items-center justify-between gap-3 cursor-pointer group"
