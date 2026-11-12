@@ -34,10 +34,37 @@ import {
   Eye,
   AudioWaveform,
   Layers,
-  FileText
+  FileText,
+  Plus,
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 import { usePlayer } from '@/context/PlayerContext';
 import { useVersion } from '@/context/VersionContext';
+import { useAuth } from '@/context/AuthContext';
+
+function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+      />
+    </svg>
+  );
+}
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -55,8 +82,46 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
   // SETTINGS STATE (Dipersistensikan secara real-time ke localStorage)
   // =========================================================================
 
-  // 1. Account & Profile
-  const [accountName, setAccountName] = useState('Guest User');
+  // 1. Account & Profile via AuthContext
+  const {
+    user,
+    accounts,
+    loginAsGuest,
+    loginWithGoogle,
+    switchAccount,
+    removeAccount,
+    logout,
+    recordStatus
+  } = useAuth();
+
+  const [newAccountMode, setNewAccountMode] = useState<'google' | 'guest'>('google');
+  const [newGoogleEmail, setNewGoogleEmail] = useState('');
+  const [newGoogleName, setNewGoogleName] = useState('');
+  const [newGuestName, setNewGuestName] = useState('');
+  const [isSubmittingAccount, setIsSubmittingAccount] = useState(false);
+
+  const handleAddGoogleAccount = async () => {
+    if (!newGoogleEmail.trim()) {
+      showToast('Masukkan alamat email Google Anda.');
+      return;
+    }
+    setIsSubmittingAccount(true);
+    await loginWithGoogle(newGoogleEmail, newGoogleName);
+    setIsSubmittingAccount(false);
+    setNewGoogleEmail('');
+    setNewGoogleName('');
+    showToast(`Akun Google ${newGoogleEmail} berhasil ditambahkan!`);
+  };
+
+  const handleAddGuestAccount = async () => {
+    setIsSubmittingAccount(true);
+    const gName = newGuestName.trim() || `Guest_${Math.floor(1000 + Math.random() * 9000)}`;
+    await loginAsGuest(gName);
+    setIsSubmittingAccount(false);
+    setNewGuestName('');
+    showToast(`Akun Guest ${gName} berhasil dibuat!`);
+  };
+
   const [accountSync, setAccountSync] = useState(true);
 
   // 2. Appearance
@@ -293,7 +358,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                       Account
                     </h3>
                     <p className="text-xs text-[#9e9a8f] truncate mt-0.5">
-                      Sign in and manage account sync ({accountName})
+                      {user.displayName} ({user.mode === 'google' ? user.email || 'Google' : 'Guest'}) • Kelola Akun
                     </p>
                   </div>
                 </div>
@@ -1332,10 +1397,255 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
             </div>
           )}
 
+          {/* ========================================================
+              SUB-VIEW: ACCOUNT & GOOGLE SHEETS SYNC
+              ======================================================== */}
+          {activeSubView === 'account' && (
+            <div className="space-y-5 pb-8">
+              {renderSubViewHeader('Manajemen Akun & Sinkronisasi')}
+
+              {/* 1. Status Akun Aktif */}
+              <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Akun Aktif Saat Ini</span>
+                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${user.mode === 'google' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-white/10 text-white/80'}`}>
+                    {user.mode === 'google' ? 'Akun Google' : 'Akun Guest'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-4 pt-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-xl font-black text-white overflow-hidden flex-shrink-0">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.displayName} className="w-full h-full object-cover" />
+                    ) : user.mode === 'google' ? (
+                      <GoogleIcon className="w-7 h-7" />
+                    ) : (
+                      <User className="w-7 h-7 text-white/70" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-bold text-white truncate">{user.displayName}</h3>
+                    <p className="text-xs text-white/50 truncate mt-0.5">
+                      {user.mode === 'google' ? user.email : 'Tersimpan lokal di perangkat · Bebas & tanpa wajib login'}
+                    </p>
+                    <p className="text-[10px] text-white/30 mt-1">
+                      ID: {user.id}
+                    </p>
+                  </div>
+                </div>
+
+                {user.mode === 'google' && (
+                  <div className="pt-2 border-t border-white/5 flex justify-end">
+                    <button
+                      onClick={() => {
+                        logout();
+                        showToast('Beralih kembali ke mode Guest');
+                      }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/5 hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 transition-colors"
+                    >
+                      Keluar ke Akun Guest
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Tambah Akun Baru (Google atau Guest) */}
+              <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-[#ede9dc] flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-teal-400" />
+                    Tambah / Ganti Akun
+                  </h3>
+                  <p className="text-xs text-[#9e9a8f] mt-1 leading-relaxed">
+                    Data login akan otomatis dicatat ke Google Sheets Anda. Pilih apakah ingin masuk dengan Akun Google atau membuat profil Guest baru.
+                  </p>
+                </div>
+
+                {/* Tab Switcher: Google vs Guest */}
+                <div className="flex bg-black/40 p-1 rounded-2xl border border-white/10">
+                  <button
+                    onClick={() => setNewAccountMode('google')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      newAccountMode === 'google'
+                        ? 'bg-white/15 text-white shadow-sm'
+                        : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    <GoogleIcon className="w-4 h-4" />
+                    Akun Google
+                  </button>
+                  <button
+                    onClick={() => setNewAccountMode('guest')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      newAccountMode === 'guest'
+                        ? 'bg-white/15 text-white shadow-sm'
+                        : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    Akun Guest
+                  </button>
+                </div>
+
+                {newAccountMode === 'google' ? (
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="text-xs font-semibold text-white/70 block mb-1">Email Google</label>
+                      <input
+                        type="email"
+                        value={newGoogleEmail}
+                        onChange={e => setNewGoogleEmail(e.target.value)}
+                        placeholder="contoh: user@gmail.com"
+                        className="w-full bg-white/5 text-sm text-white placeholder-white/30 rounded-xl px-3.5 py-2.5 border border-white/15 focus:border-teal-400 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-white/70 block mb-1">Nama Tampilan (Opsional)</label>
+                      <input
+                        type="text"
+                        value={newGoogleName}
+                        onChange={e => setNewGoogleName(e.target.value)}
+                        placeholder="Nama Akun Anda"
+                        className="w-full bg-white/5 text-sm text-white placeholder-white/30 rounded-xl px-3.5 py-2.5 border border-white/15 focus:border-teal-400 outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddGoogleAccount}
+                      disabled={!newGoogleEmail.trim() || isSubmittingAccount}
+                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-xs font-bold hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20"
+                    >
+                      <GoogleIcon className="w-4 h-4" />
+                      {isSubmittingAccount ? 'Menyimpan ke Google Sheets...' : 'Masuk dengan Akun Google'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="text-xs font-semibold text-white/70 block mb-1">Nama Akun Guest</label>
+                      <input
+                        type="text"
+                        value={newGuestName}
+                        onChange={e => setNewGuestName(e.target.value)}
+                        placeholder="contoh: Guest 1, Dzul Guest..."
+                        className="w-full bg-white/5 text-sm text-white placeholder-white/30 rounded-xl px-3.5 py-2.5 border border-white/15 focus:border-emerald-400 outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddGuestAccount}
+                      disabled={isSubmittingAccount}
+                      className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      {isSubmittingAccount ? 'Menyimpan ke Google Sheets...' : 'Buat & Masuk Akun Guest'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Daftar Semua Akun Tersimpan */}
+              <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-3">
+                <h3 className="text-sm font-bold text-[#ede9dc]">Daftar Akun Tersimpan ({accounts.length})</h3>
+                <div className="space-y-2">
+                  {accounts.map(acc => {
+                    const isActive = acc.id === user.id;
+                    return (
+                      <div
+                        key={acc.id}
+                        className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                          isActive
+                            ? 'bg-white/10 border-teal-500/40'
+                            : 'bg-white/5 border-white/5 hover:border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-xs font-bold text-white overflow-hidden flex-shrink-0">
+                            {acc.avatar ? (
+                              <img src={acc.avatar} alt={acc.displayName} className="w-full h-full object-cover" />
+                            ) : acc.mode === 'google' ? (
+                              <GoogleIcon className="w-4 h-4" />
+                            ) : (
+                              <User className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-white truncate">{acc.displayName}</p>
+                            <p className="text-[10px] text-white/50 truncate">
+                              {acc.mode === 'google' ? acc.email : 'Akun Guest'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {isActive ? (
+                            <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-teal-500/20 text-teal-300 flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Aktif
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                switchAccount(acc.id);
+                                showToast(`Beralih ke akun ${acc.displayName}`);
+                              }}
+                              className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+                            >
+                              Pilih
+                            </button>
+                          )}
+                          {accounts.length > 1 && (
+                            <button
+                              onClick={() => {
+                                removeAccount(acc.id);
+                                showToast(`Akun ${acc.displayName} dihapus`);
+                              }}
+                              className="p-1.5 rounded-lg text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                              title="Hapus akun"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Google Sheets Integration Card */}
+              <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white/70 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Google Sheets Terhubung
+                  </span>
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1lzV20IjHlxJCW76reGVO9Nwibw0CRXt1K2jif2iyF2M/edit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-bold text-teal-400 hover:underline flex items-center gap-1"
+                  >
+                    Buka Spreadsheet <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="p-3 bg-black/40 rounded-2xl border border-white/5 space-y-1.5 text-xs text-[#9e9a8f]">
+                  <p className="font-semibold text-white/80">Struktur Data Otomatis:</p>
+                  <p>• <strong>Kolom A:</strong> Username Akun Guest</p>
+                  <p>• <strong>Kolom C:</strong> Email Akun Google</p>
+                  <p>• <strong>Kolom D:</strong> Username Akun Google</p>
+                </div>
+                {recordStatus && (
+                  <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-300 text-xs font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                    <span>{recordStatus}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Other subviews fallback */}
-          {['account', 'internet', 'potoken'].includes(activeSubView) && (
+          {['internet', 'potoken'].includes(activeSubView) && (
             <div className="space-y-4">
-              {renderSubViewHeader(activeSubView === 'account' ? 'Account Sync' : activeSubView === 'internet' ? 'Internet & Network' : 'PO Token')}
+              {renderSubViewHeader(activeSubView === 'internet' ? 'Internet & Network' : 'PO Token')}
               <div className="bg-[#181614] rounded-3xl p-5 border border-white/5 space-y-3 text-sm text-[#ede9dc]">
                 <p className="font-bold">Setelan {activeSubView} aktif &amp; terkonfigurasi otomatis.</p>
                 <p className="text-xs text-[#9e9a8f] leading-relaxed">
