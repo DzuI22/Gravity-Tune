@@ -19,7 +19,7 @@
   </p>
 
   <div align="center">
-    <img src="https://img.shields.io/badge/Version-v2.5.0-d1e289?style=for-the-badge&labelColor=131211&logo=vercel" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-v7.5.3-d1e289?style=for-the-badge&labelColor=131211&logo=vercel" alt="Version" />
     <img src="https://img.shields.io/badge/Android%20APK-Ready-3DDC84?style=for-the-badge&labelColor=131211&logo=android" alt="Android APK" />
     <img src="https://img.shields.io/badge/License-MIT-d1e289?style=for-the-badge&labelColor=131211" alt="License" />
     <img src="https://img.shields.io/badge/Stack-Next.js%2014-black?style=for-the-badge&labelColor=131211&logo=nextdotjs" alt="Next.js" />
@@ -40,9 +40,11 @@
 
 Nikmati pengalaman pemutar musik murni tanpa perlu membuka browser!
 
-| Tautan Unduh | Versi | Ukuran | Kompatibilitas |
-| :--- | :--- | :--- | :--- |
-| **[GravityTune-v2.5.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v2.5.0/GravityTune-v2.5.0.apk)** | `v2.5.0` | ~5.3 MB | Android 7.0 (Nougat) ke atas |
+| Tautan Unduh | Versi | Package ID | Ukuran | Catatan Rilis |
+| :--- | :--- | :--- | :--- | :--- |
+| **[GravityTune-v7.5.3.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v7.5.3/GravityTune-v7.5.3.apk)** | `v7.5.3` | `com.gravitytune.v7` | ~5.8 MB | **Rilis Terbaru!** Standalone App, Warm Amber OLED, Apple Music Lyrics, In-App Sleep Mode |
+| **[GravityTune-v5.1.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v5.1.0/GravityTune-v5.1.0.apk)** | `v5.1.0` | `com.gravitytune.v5` | ~5.5 MB | Liquid Glassmorphism, Podcast Library, YouTube Music Community |
+| **[GravityTune-v2.5.0.apk](https://github.com/DzuI22/Gravity-Tune/releases/download/v2.5.0/GravityTune-v2.5.0.apk)** | `v2.5.0` | `com.gravitytune.v2` | ~5.3 MB | Classic Ultra Lightweight, Audio Crossfade, EBU Normalization |
 
 > **Cara Pasang di HP:**
 > 1. Unduh berkas APK melalui tautan di atas.
@@ -52,7 +54,20 @@ Nikmati pengalaman pemutar musik murni tanpa perlu membuka browser!
 
 ---
 
-## ✨ Features Unggulan di v2.5.0
+
+---
+
+## 📱 Format APK Mandiri & Komparasi Versi
+
+Setiap versi GravityTune memiliki **Application ID (Package Name) terpisah** sehingga Anda dapat menginstal semua versi sekaligus di satu HP Android tanpa saling menimpa:
+
+| Versi | Application ID (Gradle) | Nama di Layar HP | File APK | Sorotan Utama |
+| :--- | :--- | :--- | :--- | :--- |
+| **v7.5.3** | `com.gravitytune.v7` | **GravityTune v7.5.3** | `GravityTune-v7.5.3.apk` | Warm Amber OLED, Apple Music Synced Lyrics, In-App Sleep Mode, Canvas Video Backdrop |
+| **v5.1.0** | `com.gravitytune.v5` | **GravityTune v5.1** | `GravityTune-v5.1.0.apk` | Liquid Glassmorphism UI, Podcast Library, YouTube Community Playlists |
+| **v2.5.0** | `com.gravitytune.v2` | **GravityTune v2.5** | `GravityTune-v2.5.0.apk` | Classic Ultra Lightweight, InnerTube Engine, Gapless Playback |
+
+## ✨ Features Unggulan di v7.5.3 & Rilis Sebelumnya
 
 <div align="center" id="features">
 

@@ -42,6 +42,7 @@ import {
 import { usePlayer } from '@/context/PlayerContext';
 import { useVersion } from '@/context/VersionContext';
 import { useAuth } from '@/context/AuthContext';
+import LyricsAndCanvasControls from './LyricsAndCanvasControls';
 
 function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
@@ -143,6 +144,15 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
   const [lyricsBlurEffect, setLyricsBlurEffect] = useState(true);
   const [romanization, setRomanization] = useState(false);
   const [lyricsFontSize, setLyricsFontSize] = useState<'medium' | 'large' | 'huge'>('large');
+  // v7.5.3 Lyrics & Canvas Suite
+  const [bounceAmplitude, setBounceAmplitude] = useState(133);
+  const [glowIntensity, setGlowIntensity] = useState(72);
+  const [fillTransitionSmoothness, setFillTransitionSmoothness] = useState(8);
+  const [lineBounceEffect, setLineBounceEffect] = useState(true);
+  const [canvasSource, setCanvasSource] = useState<'spotify' | 'apple' | 'tidal' | 'betterlyrics'>('spotify');
+  const [canvasWifiOnly, setCanvasWifiOnly] = useState(false);
+  const [highRefreshRate144, setHighRefreshRate144] = useState(true);
+
 
   // 5. Content
   const [contentLanguage, setContentLanguage] = useState('id');
@@ -1021,6 +1031,25 @@ export default function SettingsModal({ isOpen, onClose, onOpenStats }: Settings
                   ))}
                 </div>
               </div>
+
+              {/* v7.5.3 Lyrics Animation & Canvas Backdrop Suite */}
+              <LyricsAndCanvasControls
+                bounceAmplitude={bounceAmplitude}
+                setBounceAmplitude={setBounceAmplitude}
+                glowIntensity={glowIntensity}
+                setGlowIntensity={setGlowIntensity}
+                fillTransitionSmoothness={fillTransitionSmoothness}
+                setFillTransitionSmoothness={setFillTransitionSmoothness}
+                lineBounceEffect={lineBounceEffect}
+                setLineBounceEffect={setLineBounceEffect}
+                canvasSource={canvasSource}
+                setCanvasSource={setCanvasSource}
+                canvasWifiOnly={canvasWifiOnly}
+                setCanvasWifiOnly={setCanvasWifiOnly}
+                highRefreshRate144={highRefreshRate144}
+                setHighRefreshRate144={setHighRefreshRate144}
+                showToast={showToast}
+              />
             </div>
           )}
 

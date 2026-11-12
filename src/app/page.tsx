@@ -249,7 +249,7 @@ export default function HomePage() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setVersion(isV5 ? '2.5.0' : '5.1.0');
+                setVersion(version === '7.5.3' ? '5.1.0' : version === '5.1.0' ? '2.5.0' : '7.5.3');
               }}
               title={`Klik untuk berganti versi (Aktif: v${version}). Klik untuk pindah ke v${isV5 ? '2.5.0' : '5.1.0'}`}
               className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide uppercase transition-all active:scale-90 border shadow-sm flex items-center gap-1 bg-[#1a1816] hover:bg-white/10 text-[#d1e289] border-[#d1e289]/40 hover:border-[#d1e289]"
@@ -468,7 +468,7 @@ export default function HomePage() {
             </div>
 
             {/* Featured Playlists Cards (Hanya Tampil di Mode v5.1.0) */}
-            {isV5 && featuredPlaylists.length > 0 && (
+            {featuredPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">Featured Playlists</h3>
@@ -503,7 +503,7 @@ export default function HomePage() {
             )}
 
             {/* Community Section Feed (Hanya Tampil di Mode v5.1.0) */}
-            {isV5 && communityPlaylists.length > 0 && (
+            {communityPlaylists.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-extrabold text-[#ede9dc] tracking-tight">From the Community</h3>

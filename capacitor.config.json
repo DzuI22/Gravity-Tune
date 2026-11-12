@@ -1,6 +1,6 @@
 {
-  "appId": "com.gravitytune.app",
-  "appName": "GravityTune",
+  "appId": "com.gravitytune.v7",
+  "appName": "GravityTune v7.5.3",
   "webDir": "out",
   "server": {
     "url": "https://gravity-tune-v5.vercel.app",

@@ -1,10 +1,11 @@
-name: Build Android APK Release v5.1.0
+name: Build Android APK Release
 
 on:
   push:
     branches:
       - main
       - v5.1.0
+      - v7.5.3
   workflow_dispatch:
 
 permissions:
@@ -12,12 +13,14 @@ permissions:
 
 jobs:
   build-android-apk:
-    name: Build & Release GravityTune APK v5.1.0
+    name: Build & Release GravityTune APK v7.5.3
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -56,41 +59,52 @@ jobs:
             APK_PATH=$(find . -name "*.apk" -type f | head -n 1)
           fi
           echo "Using APK found at: $APK_PATH"
-          cp "$APK_PATH" release-files/GravityTune-v5.1.0.apk
+          cp "$APK_PATH" release-files/GravityTune-v7.5.3.apk
           ls -lh release-files/
+
+      - name: Update README.md automatically
+        run: |
+          node scripts/update-readme.js
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git add README.md
+            git commit -m "docs: auto-update README.md for GravityTune v7.5.3 release"
+            git push origin HEAD:${{ github.ref_name }} || true
+          fi
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GravityTune-Android-APK-v5.1.0
-          path: release-files/GravityTune-v5.1.0.apk
+          name: GravityTune-Android-APK-v7.5.3
+          path: release-files/GravityTune-v7.5.3.apk
           retention-days: 30
 
-      - name: Publish Official Release v5.1.0
+      - name: Publish Official Release v7.5.3
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v5.1.0
-          name: "GravityTune v5.1.0 (Major Release: Glass UI, Podcasts & Community)"
+          tag_name: v7.5.3
+          name: "GravityTune v7.5.3 (Major Release: Standalone App, Warm Amber OLED & Apple Music Lyrics)"
           body: |
-            ## 🎵 GravityTune v5.1.0 - Official Android APK (Major Release)
+            ## 🎵 GravityTune v7.5.3 - Official Standalone Android APK (Major Release)
 
-            Selamat datang di **GravityTune v5.1.0**! Pembaruan akbar yang membawa antarmuka kaca mutakhir, perpustakaan podcast lengkap, serta pemutaran latar belakang yang kebal jeda.
+            Selamat datang di **GravityTune v7.5.3**! Pembaruan akbar yang membawa antarmuka baru Warm Amber OLED, Apple Music-style dynamic synced lyrics, sleep lock screen mode, canvas video backdrop, dan format **APK Mandiri (Standalone)** dengan ID paket `com.gravitytune.v7` sehingga dapat dipasang berdampingan dengan versi terdahulu (v2.5.0 dan v5.1.0) tanpa saling menimpa!
 
-            ### ✨ Fitur Unggulan di v5.1.0:
-            - **💎 Liquid Glassmorphism UI:** Desain antarmuka kaca buram (*frosted glass*) dengan animasi transisi pegas super halus.
-            - **🔊 Kebal Background Play & Lock Screen:** Audio tetap bersuara saat layar HP mati dengan kontrol notifikasi responsif.
-            - **🎙️ Dedicated Podcast Library:** Pengelolaan podcast YouTube Music lengkap dengan resume durasi menit terakhir.
-            - **🏠 Featured & Community Playlists:** Eksplorasi playlist buatan komunitas YouTube Music di halaman Home.
-            - **🎨 Immersive Player & Ambient Backdrop:** Pencahayaan latar dinamis menyesuaikan nuansa warna cover lagu.
-            - **⚡ YouTube Engine Hardening:** Pemulihan otomatis saat terjadi kendala stream.
+            ### ✨ Fitur Unggulan di v7.5.3:
+            - **💎 Standalone App ID (`com.gravitytune.v7`):** Bisa dipasang bersamaan dengan v2.5.0 dan v5.1.0 di satu smartphone.
+            - **🌙 Warm Amber & Pure Black OLED:** Desain ultra-kontras hemat daya dengan aksen emas hangat dan tombol floating pills.
+            - **🎤 Apple Music Synced Lyrics:** Animasi line bounce karaoke, blur baris dinamis, fluid transition, dan slider volume mandiri di tampilan lirik.
+            - **🔒 In-App Sleep / Lock Screen Mode:** Layar kunci dalam aplikasi lengkap dengan jam digital besar, indikator baterai riil, dan gestur *Slide to Unlock*.
+            - **🎬 Canvas Motion Backdrop:** Looping animasi latar album dengan dukungan multi-provider (Spotify, Apple Music, TIDAL, BetterLyrics) serta opsi Wi-Fi only.
+            - **⚙️ Full Settings Suite:** Appearance (144Hz high refresh rate), Audio Quality, AI Integration (Google Gemini & OpenAI), dan Cloud Sync.
 
-            ### 📲 Cara Pemasangan di HP Android:
-            1. Unduh berkas **`GravityTune-v5.1.0.apk`** di bawah ini.
+            ### 📱 Cara Pemasangan di HP Android:
+            1. Unduh berkas **`GravityTune-v7.5.3.apk`** di bawah ini.
             2. Izinkan instalasi dari sumber tidak dikenal jika diminta oleh Android.
             3. Pasang dan nikmati pengalaman audio tingkat audiophile!
 
             > Build Hash: ${{ github.sha }}
-          files: release-files/GravityTune-v5.1.0.apk
+          files: release-files/GravityTune-v7.5.3.apk
           prerelease: false
           make_latest: true
         env:
