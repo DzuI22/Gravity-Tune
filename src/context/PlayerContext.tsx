@@ -533,17 +533,63 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     const fetchLyrics = async () => {
+      // 1. Try Next.js internal /api/lyrics route
       try {
         const res = await fetch(`/api/lyrics?title=${encodeURIComponent(currentSong.title)}&artist=${encodeURIComponent(currentSong.artist)}&duration=${currentSong.duration}`);
         if (res.ok) {
           const data: LyricsData = await res.json();
-          setLyrics(data);
-        } else {
-          setLyrics({ synced: false, lines: [] });
+          if (data && data.lines && data.lines.length > 0) {
+            setLyrics(data);
+            return;
+          }
         }
-      } catch (err) {
-        setLyrics({ synced: false, lines: [] });
-      }
+      } catch (_) {}
+
+      // 2. Direct client-side LRCLIB fallback (vital for standalone Android APK where Next server route might be local/static)
+      try {
+        const cleanTitle = (currentSong.title || '')
+          .replace(/[\(\[\{][^\)\]\}]*(?:official|music\s*video|audio|lyric|lyrics|hd|4k|remastered|live|visualizer|mv|m\/v|video|lirik|cover|explicit)[^\)\]\}]*[\)\]\}]/gi, '')
+          .replace(/\s*[-–—|]\s*(?:official\s*video|music\s*video|official|lyrics|audio|mv).*$/gi, '')
+          .replace(/\s*[\(\[]?\s*(?:feat|ft)\.?\s+[^)\]]+[\)\]]?/gi, '')
+          .trim();
+
+        const lrclibRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent((cleanTitle || currentSong.title) + ' ' + (currentSong.artist || ''))}`);
+        if (lrclibRes.ok) {
+          const items = await lrclibRes.json();
+          if (Array.isArray(items) && items.length > 0) {
+            const match = items.find((x: any) => x.syncedLyrics) || items.find((x: any) => x.plainLyrics) || items[0];
+            if (match?.syncedLyrics) {
+              const lines: { time: number; text: string }[] = [];
+              const timeRegex = /\[(\d{2}):(\d{2})\.?(\d{0,3})\]/g;
+              for (const l of match.syncedLyrics.split('\n')) {
+                const tr = l.trim();
+                if (!tr) continue;
+                timeRegex.lastIndex = 0;
+                const m = timeRegex.exec(tr);
+                if (m) {
+                  const t = tr.replace(/\[\d{2}:\d{2}\.?\d{0,3}\]/g, '').trim();
+                  if (t) {
+                    const sec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10) + parseFloat('0.' + (m[3] || '0'));
+                    lines.push({ time: sec, text: t });
+                  }
+                }
+              }
+              if (lines.length > 0) {
+                setLyrics({ synced: true, lines: lines.sort((a, b) => a.time - b.time), plain: match.plainLyrics });
+                return;
+              }
+            } else if (match?.plainLyrics) {
+              const plines = match.plainLyrics.split('\n').map((t: string) => t.trim()).filter(Boolean).map((t: string, i: number) => ({ time: i * 5, text: t }));
+              if (plines.length > 0) {
+                setLyrics({ synced: false, lines: plines, plain: match.plainLyrics });
+                return;
+              }
+            }
+          }
+        }
+      } catch (_) {}
+
+      setLyrics({ synced: false, lines: [] });
     };
 
     fetchLyrics();
