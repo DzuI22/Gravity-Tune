@@ -147,10 +147,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
         const audio = new Audio(silentWav);
         audio.loop = true;
-        audio.volume = 0.001;
+        audio.volume = 0.01;
+        audio.autoplay = true;
         silentAudioRef.current = audio;
       }
-      silentAudioRef.current?.play().catch(() => {});
+      const playP = silentAudioRef.current?.play(); if (playP !== undefined) playP.catch(() => {});
 
       // WebAudio oscillator keep-alive at inaudible gain
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -272,8 +273,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       try {
         new (window as any).YT.Player('gravity-yt-iframe-player', {
-          height: '10',
-          width: '10',
+          height: '180',
+          width: '240',
           playerVars: {
             autoplay: 1,
             controls: 0,
@@ -321,7 +322,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                           ytPlayerRef.current.playVideo();
                         } catch (_) {}
                       }
-                    }, 250);
+                    }, 50);
                   }
                 } else {
                   // Intentional pause by user
@@ -822,13 +823,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         aria-hidden="true"
         style={{
           position: 'fixed',
-          bottom: -500,
-          left: -500,
-          width: 10,
-          height: 10,
-          opacity: 0.001,
+          top: 0,
+          left: 0,
+          width: 240,
+          height: 180,
+          opacity: 0.002,
           pointerEvents: 'none',
-          zIndex: -9999,
+          zIndex: 1,
           overflow: 'hidden',
         }}
       >
