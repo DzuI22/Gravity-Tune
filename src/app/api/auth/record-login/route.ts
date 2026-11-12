@@ -4,6 +4,9 @@ export const dynamic = 'force-dynamic';
 
 const SPREADSHEET_ID = '1lzV20IjHlxJCW76reGVO9Nwibw0CRXt1K2jif2iyF2M';
 
+// Default Webhook URL configured by user
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwNSU3COrahsR9HRw8RSly6eekLQItKHWaH0d6t8M5B18xfpkLWA-8QPAf7V9Hz_7gKzw/exec';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -34,8 +37,8 @@ export async function POST(request: NextRequest) {
 
     console.log('[Auth Record] New login recorded:', payload);
 
-    // If custom Google Apps Script Webhook URL is configured
-    const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    // Use environment variable or fallback directly to user's deployed Apps Script Webhook
+    const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
     let sheetSynced = false;
 
     if (webhookUrl) {
